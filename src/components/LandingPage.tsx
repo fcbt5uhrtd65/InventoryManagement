@@ -348,7 +348,7 @@ export function LandingPage({ onShowLogin, onShowRegister }: LandingPageProps) {
 
             {/* Plan Pro - POPULAR */}
             <div className="p-8 bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-400 rounded-2xl shadow-xl transform md:scale-105 relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 rounded-full shadow-lg">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 bg-linear-to-r from-amber-400 to-yellow-400 text-amber-900 rounded-full shadow-lg">
                 <span className="flex items-center gap-1">
                   <Star size={14} fill="currentColor" />
                   Popular
@@ -389,7 +389,7 @@ export function LandingPage({ onShowLogin, onShowRegister }: LandingPageProps) {
               </ul>
               <button
                 onClick={onShowRegister}
-                className="w-full px-6 py-3 bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 rounded-xl hover:from-amber-500 hover:to-yellow-500 transition-all shadow-lg"
+                className="w-full px-6 py-3 bg-linear-to-r from-amber-400 to-yellow-400 text-amber-900 rounded-xl hover:from-amber-500 hover:to-yellow-500 transition-all shadow-lg"
               >
                 Comenzar
               </button>

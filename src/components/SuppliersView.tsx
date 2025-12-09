@@ -448,9 +448,9 @@ function SupplierDetailsModal({ supplier, products, onClose }: {
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-orange-600 to-orange-700 p-6 flex items-center justify-between rounded-t-2xl">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-linear-to-r from-orange-600 to-orange-700 p-6 flex items-center justify-between rounded-t-2xl">
           <h3 className="text-white">Detalles del Proveedor</h3>
           <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg text-white">
             ×

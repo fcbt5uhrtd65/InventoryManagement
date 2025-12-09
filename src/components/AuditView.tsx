@@ -104,7 +104,7 @@ export function AuditView({ logs }: AuditViewProps) {
         </div>
         <button
           onClick={handleExportLogs}
-          className="flex items-center gap-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg"
+          className="flex items-center gap-2 bg-linear-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all shadow-lg"
         >
           <Download size={20} />
           Exportar Registros
@@ -280,7 +280,7 @@ export function AuditView({ logs }: AuditViewProps) {
       {selectedLog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
-            <div className="bg-gradient-to-r from-purple-600 to-purple-700 p-6 flex items-center justify-between rounded-t-2xl">
+            <div className="bg-linear-to-r from-purple-600 to-purple-700 p-6 flex items-center justify-between rounded-t-2xl">
               <h3 className="text-white">Detalles del Registro de Auditoría</h3>
               <button 
                 onClick={() => setSelectedLog(null)} 

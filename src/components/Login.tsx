@@ -147,7 +147,7 @@ export function Login({ onLogin, onShowRegister, error }: LoginProps) {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
                 >
                   <span>Iniciar Sesión</span>
                   <Zap size={18} />

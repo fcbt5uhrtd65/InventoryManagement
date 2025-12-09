@@ -130,12 +130,12 @@ export function WarehousesView({ warehouses, products, onSave, onUpdate, onDelet
                   </span>
                 </div>
                 <div className="w-full bg-slate-200 rounded-full h-3 mb-2">
-                  <div 
-                    className={`h-3 rounded-full transition-all ${
-                      occupancy > 90 ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                      occupancy > 70 ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
-                      'bg-gradient-to-r from-emerald-500 to-emerald-600'
-                    }`}
+                    <div
+                      className={`h-3 rounded-full transition-all ${
+                      occupancy > 90 ? 'bg-linear-to-r from-red-500 to-red-600' :
+                      occupancy > 70 ? 'bg-linear-to-r from-amber-500 to-amber-600' :
+                      'bg-linear-to-r from-emerald-500 to-emerald-600'
+                      }`}
                     style={{ width: `${Math.min(occupancy, 100)}%` }}
                   />
                 </div>

@@ -151,9 +151,9 @@ export function UserFormModal({ isOpen, onClose, onSave, user }: UserFormModalPr
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-colors"
+              className="flex-1 px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-colors"
             >
-              {user ? 'Actualizar' : 'Crear'} Usuario
+              {user ? 'Actualizar' : 'Guardar'}
             </button>
           </div>
         </form>

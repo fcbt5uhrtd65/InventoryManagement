@@ -82,9 +82,9 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 p-6 flex items-center justify-between rounded-t-2xl">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-linear-to-r from-purple-600 to-indigo-600 p-6 flex items-center justify-between rounded-t-2xl">
           <h3 className="text-white">{product ? 'Editar Producto' : 'Nuevo Producto'}</h3>
           <button
             onClick={onClose}
@@ -261,9 +261,9 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-colors"
+              className="flex-1 px-6 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-colors"
             >
-              {product ? 'Actualizar' : 'Crear'} Producto
+              {product ? 'Actualizar' : 'Guardar'}
             </button>
           </div>
         </form>
