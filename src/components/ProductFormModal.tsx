@@ -1,0 +1,273 @@
+import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
+import type { Product } from '../types/index';
+
+interface ProductFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (product: Omit<Product, 'id' | 'createdAt'>) => void;
+  product?: Product | null;
+}
+
+const categories = ['Electrónica', 'Ropa', 'Alimentos', 'Hogar', 'Deportes', 'Libros', 'Juguetes', 'Herramientas', 'Otro'];
+
+export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFormModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    code: '',
+    category: categories[0],
+    customCategory: '',
+    price: 0,
+    stock: 0,
+    minStock: 5,
+    maxStock: 100,
+    supplier: '',
+    image: '',
+    active: true,
+  });
+
+  useEffect(() => {
+    if (product) {
+      const isCustomCategory = !categories.includes(product.category);
+      setFormData({
+        name: product.name,
+        description: product.description,
+        code: product.code,
+        category: isCustomCategory ? 'Otro' : product.category,
+        customCategory: isCustomCategory ? product.category : '',
+        price: product.price,
+        stock: product.stock,
+        minStock: product.minStock,
+        maxStock: product.maxStock,
+        supplier: product.supplier,
+        image: product.image,
+        active: product.active,
+      });
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        code: `PRD-${Date.now().toString(36).toUpperCase()}`,
+        category: categories[0],
+        customCategory: '',
+        price: 0,
+        stock: 0,
+        minStock: 5,
+        maxStock: 100,
+        supplier: '',
+        image: '',
+        active: true,
+      });
+    }
+  }, [product, isOpen]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Usar categoría personalizada si se seleccionó "Otro"
+    const finalCategory = formData.category === 'Otro' && formData.customCategory.trim() 
+      ? formData.customCategory.trim() 
+      : formData.category;
+    
+    const { customCategory, ...productData } = formData;
+    
+    onSave({
+      ...productData,
+      category: finalCategory
+    });
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 p-6 flex items-center justify-between rounded-t-2xl">
+          <h3 className="text-white">{product ? 'Editar Producto' : 'Nuevo Producto'}</h3>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <label className="block text-slate-700 mb-2">Nombre del Producto *</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Ej: Laptop HP Pavilion 15"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-slate-700 mb-2">Descripción *</label>
+              <textarea
+                required
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                rows={3}
+                placeholder="Descripción detallada del producto"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-slate-700 mb-2">Código del Producto *</label>
+              <input
+                type="text"
+                required
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="PRD-12345"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-slate-700 mb-2">Categoría *</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value, customCategory: '' })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Campo de categoría personalizada que aparece cuando se selecciona "Otro" */}
+            {formData.category === 'Otro' && (
+              <div className="md:col-span-2">
+                <label className="block text-slate-700 mb-2">Nombre de Categoría Personalizada *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.customCategory}
+                  onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-50"
+                  placeholder="Ej: Accesorios, Muebles, Papelería, etc."
+                />
+                <p className="text-slate-500 mt-2">💡 Escribe el nombre de la categoría que deseas crear</p>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-slate-700 mb-2">Proveedor *</label>
+              <input
+                type="text"
+                required
+                value={formData.supplier}
+                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Nombre del proveedor"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 mb-2">Precio Unitario ($) *</label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="99.99"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-slate-700 mb-2">Stock Actual *</label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={formData.stock}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="100"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-slate-700 mb-2">Stock Mínimo *</label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={formData.minStock}
+                onChange={(e) => setFormData({ ...formData, minStock: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="5"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 mb-2">Stock Máximo *</label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={formData.maxStock}
+                onChange={(e) => setFormData({ ...formData, maxStock: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="100"
+              />
+            </div>
+            
+            <div className="md:col-span-2">
+              <label className="block text-slate-700 mb-2">URL de Imagen *</label>
+              <input
+                type="url"
+                required
+                value={formData.image}
+                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.active}
+                  onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                  className="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
+                />
+                <span className="text-slate-700">Producto activo</span>
+              </label>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 mt-8">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-colors"
+            >
+              {product ? 'Actualizar' : 'Crear'} Producto
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
