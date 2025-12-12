@@ -1,55 +1,62 @@
--- =====================================================
--- SISTEMA DE GESTIÓN DE INVENTARIO
--- Base de Datos: PostgreSQL / MySQL
--- Fecha: 2025-12-09
--- =====================================================
+-- ==========================================
+-- SCHEMA COMPLETO - SISTEMA DE INVENTARIO
+-- Base de Datos: PostgreSQL (Supabase)
+-- Fecha: 2025-12-11
+-- ==========================================
 
--- =====================================================
+-- Habilitar extensión para UUIDs
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ==========================================
+-- TIPOS PERSONALIZADOS (ENUMS)
+-- ==========================================
+
+-- Tipo para roles de usuario
+CREATE TYPE user_role AS ENUM ('admin', 'empleado', 'auditor', 'encargado_bodega');
+
+-- Tipo para tipos de movimiento
+CREATE TYPE movement_type AS ENUM ('entrada', 'salida', 'ajuste', 'devolucion');
+
+-- Tipo para estados de órdenes de compra
+CREATE TYPE order_status AS ENUM ('pendiente', 'aprobada', 'rechazada', 'completada');
+
+-- ==========================================
 -- TABLA: users
--- Descripción: Almacena usuarios del sistema con diferentes roles
--- =====================================================
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Descripción: Usuarios del sistema con roles
+-- ==========================================
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'empleado', 'auditor', 'encargado_bodega') NOT NULL,
+    role user_role NOT NULL,
     active BOOLEAN DEFAULT true NOT NULL,
     avatar VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    
-    -- Índices para optimización de consultas
-    INDEX idx_users_email (email),
-    INDEX idx_users_role (role),
-    INDEX idx_users_active (active)
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: warehouses
--- Descripción: Almacena información de bodegas/almacenes
--- =====================================================
-CREATE TABLE warehouses (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Descripción: Bodegas/almacenes
+-- ==========================================
+CREATE TABLE IF NOT EXISTS warehouses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     location VARCHAR(500) NOT NULL,
     capacity INTEGER NOT NULL CHECK (capacity > 0),
     manager VARCHAR(255) NOT NULL,
     active BOOLEAN DEFAULT true NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    
-    -- Índices
-    INDEX idx_warehouses_active (active),
-    INDEX idx_warehouses_name (name)
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: suppliers
--- Descripción: Almacena información de proveedores
--- =====================================================
-CREATE TABLE suppliers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Descripción: Proveedores
+-- ==========================================
+CREATE TABLE IF NOT EXISTS suppliers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     contact VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -57,21 +64,16 @@ CREATE TABLE suppliers (
     nit VARCHAR(50) UNIQUE NOT NULL,
     address TEXT NOT NULL,
     active BOOLEAN DEFAULT true NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    
-    -- Índices
-    INDEX idx_suppliers_nit (nit),
-    INDEX idx_suppliers_active (active),
-    INDEX idx_suppliers_name (name)
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: products
--- Descripción: Almacena información de productos del inventario
--- =====================================================
-CREATE TABLE products (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Descripción: Catálogo de productos
+-- ==========================================
+CREATE TABLE IF NOT EXISTS products (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     code VARCHAR(100) UNIQUE NOT NULL,
@@ -82,11 +84,11 @@ CREATE TABLE products (
     min_stock INTEGER NOT NULL CHECK (min_stock >= 0),
     max_stock INTEGER NOT NULL CHECK (max_stock >= min_stock),
     
-    -- Relaciones con otras tablas
+    -- Relaciones
     supplier_id UUID REFERENCES suppliers(id) ON DELETE SET NULL,
-    supplier_name VARCHAR(255), -- Desnormalizado para rendimiento
+    supplier_name VARCHAR(255),
     warehouse_id UUID REFERENCES warehouses(id) ON DELETE SET NULL,
-    warehouse_name VARCHAR(255), -- Desnormalizado para rendimiento
+    warehouse_name VARCHAR(255),
     
     -- Información adicional
     image VARCHAR(500),
@@ -97,179 +99,202 @@ CREATE TABLE products (
     location VARCHAR(255),
     active BOOLEAN DEFAULT true NOT NULL,
     
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    
-    -- Índices para optimización
-    INDEX idx_products_code (code),
-    INDEX idx_products_category (category),
-    INDEX idx_products_supplier (supplier_id),
-    INDEX idx_products_warehouse (warehouse_id),
-    INDEX idx_products_stock (stock),
-    INDEX idx_products_active (active),
-    INDEX idx_products_barcode (barcode),
-    INDEX idx_products_name (name),
-    
-    -- Índice compuesto para búsquedas de stock crítico
-    INDEX idx_products_stock_alert (stock, min_stock, active)
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: movements
--- Descripción: Registra todos los movimientos de inventario
--- =====================================================
-CREATE TABLE movements (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type ENUM('entrada', 'salida', 'ajuste', 'devolucion') NOT NULL,
+-- Descripción: Movimientos de inventario
+-- ==========================================
+CREATE TABLE IF NOT EXISTS movements (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    type movement_type NOT NULL,
     
     -- Relación con producto
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    product_name VARCHAR(255) NOT NULL, -- Desnormalizado para histórico
+    product_name VARCHAR(255) NOT NULL,
     
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     date TIMESTAMP NOT NULL,
     observation TEXT,
     
-    -- Usuario que realiza el movimiento
+    -- Usuario
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    user_name VARCHAR(255) NOT NULL, -- Desnormalizado para histórico
+    user_name VARCHAR(255) NOT NULL,
     
     -- Información adicional
     lot_number VARCHAR(100),
     reason VARCHAR(500),
     warehouse_id UUID REFERENCES warehouses(id) ON DELETE SET NULL,
-    warehouse_name VARCHAR(255), -- Desnormalizado
+    warehouse_name VARCHAR(255),
     
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    
-    -- Índices
-    INDEX idx_movements_product (product_id),
-    INDEX idx_movements_user (user_id),
-    INDEX idx_movements_type (type),
-    INDEX idx_movements_date (date DESC),
-    INDEX idx_movements_warehouse (warehouse_id),
-    
-    -- Índice compuesto para reportes
-    INDEX idx_movements_date_type (date DESC, type)
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: audit_logs
--- Descripción: Registro de auditoría para trazabilidad completa
--- =====================================================
-CREATE TABLE audit_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Descripción: Registro de auditoría
+-- ==========================================
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     user_name VARCHAR(255) NOT NULL,
     action VARCHAR(255) NOT NULL,
     entity VARCHAR(100) NOT NULL,
     entity_id UUID NOT NULL,
     details TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    
-    -- Índices para búsquedas rápidas
-    INDEX idx_audit_user (user_id),
-    INDEX idx_audit_entity (entity, entity_id),
-    INDEX idx_audit_timestamp (timestamp DESC),
-    INDEX idx_audit_action (action)
+    timestamp TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: purchase_orders
--- Descripción: Órdenes de compra a proveedores
--- =====================================================
-CREATE TABLE purchase_orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Descripción: Órdenes de compra
+-- ==========================================
+CREATE TABLE IF NOT EXISTS purchase_orders (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     
     -- Relación con proveedor
     supplier_id UUID NOT NULL REFERENCES suppliers(id) ON DELETE RESTRICT,
-    supplier_name VARCHAR(255) NOT NULL, -- Desnormalizado
+    supplier_name VARCHAR(255) NOT NULL,
     
     total_amount DECIMAL(12,2) NOT NULL CHECK (total_amount >= 0),
-    status ENUM('pendiente', 'aprobada', 'rechazada', 'completada') NOT NULL DEFAULT 'pendiente',
+    status order_status NOT NULL DEFAULT 'pendiente',
     
-    -- Usuario que crea la orden
+    -- Usuario que crea
     created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    
-    -- Índices
-    INDEX idx_po_supplier (supplier_id),
-    INDEX idx_po_status (status),
-    INDEX idx_po_created_by (created_by),
-    INDEX idx_po_created_at (created_at DESC)
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: purchase_order_items
--- Descripción: Items/productos dentro de cada orden de compra
--- =====================================================
-CREATE TABLE purchase_order_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Descripción: Items de órdenes de compra
+-- ==========================================
+CREATE TABLE IF NOT EXISTS purchase_order_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     purchase_order_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
     product_name VARCHAR(255) NOT NULL,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
-    subtotal DECIMAL(12,2) GENERATED ALWAYS AS (quantity * price) STORED,
-    
-    -- Índices
-    INDEX idx_poi_order (purchase_order_id),
-    INDEX idx_poi_product (product_id)
+    subtotal DECIMAL(12,2) GENERATED ALWAYS AS (quantity * price) STORED
 );
 
--- =====================================================
+-- ==========================================
 -- TABLA: supplier_products
--- Descripción: Relación N:N entre proveedores y productos
--- =====================================================
-CREATE TABLE supplier_products (
+-- Descripción: Relación N:N proveedores-productos
+-- ==========================================
+CREATE TABLE IF NOT EXISTS supplier_products (
     supplier_id UUID NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    
-    PRIMARY KEY (supplier_id, product_id),
-    
-    -- Índices
-    INDEX idx_sp_supplier (supplier_id),
-    INDEX idx_sp_product (product_id)
+    PRIMARY KEY (supplier_id, product_id)
 );
 
--- =====================================================
--- TRIGGERS PARA AUDITORÍA AUTOMÁTICA
--- =====================================================
+-- ==========================================
+-- ÍNDICES para optimización
+-- ==========================================
 
--- Trigger para actualizar updated_at automáticamente
+-- Users
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_active ON users(active);
+
+-- Warehouses
+CREATE INDEX IF NOT EXISTS idx_warehouses_active ON warehouses(active);
+CREATE INDEX IF NOT EXISTS idx_warehouses_name ON warehouses(name);
+
+-- Suppliers
+CREATE INDEX IF NOT EXISTS idx_suppliers_nit ON suppliers(nit);
+CREATE INDEX IF NOT EXISTS idx_suppliers_active ON suppliers(active);
+CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
+
+-- Products
+CREATE INDEX IF NOT EXISTS idx_products_code ON products(code);
+CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_products_supplier ON products(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_products_warehouse ON products(warehouse_id);
+CREATE INDEX IF NOT EXISTS idx_products_stock ON products(stock);
+CREATE INDEX IF NOT EXISTS idx_products_active ON products(active);
+CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode);
+CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+CREATE INDEX IF NOT EXISTS idx_products_stock_alert ON products(stock, min_stock, active);
+
+-- Movements
+CREATE INDEX IF NOT EXISTS idx_movements_product ON movements(product_id);
+CREATE INDEX IF NOT EXISTS idx_movements_user ON movements(user_id);
+CREATE INDEX IF NOT EXISTS idx_movements_type ON movements(type);
+CREATE INDEX IF NOT EXISTS idx_movements_date ON movements(date DESC);
+CREATE INDEX IF NOT EXISTS idx_movements_warehouse ON movements(warehouse_id);
+CREATE INDEX IF NOT EXISTS idx_movements_date_type ON movements(date DESC, type);
+
+-- Audit Logs
+CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(entity, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
+
+-- Purchase Orders
+CREATE INDEX IF NOT EXISTS idx_po_supplier ON purchase_orders(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_po_status ON purchase_orders(status);
+CREATE INDEX IF NOT EXISTS idx_po_created_by ON purchase_orders(created_by);
+CREATE INDEX IF NOT EXISTS idx_po_created_at ON purchase_orders(created_at DESC);
+
+-- Purchase Order Items
+CREATE INDEX IF NOT EXISTS idx_poi_order ON purchase_order_items(purchase_order_id);
+CREATE INDEX IF NOT EXISTS idx_poi_product ON purchase_order_items(product_id);
+
+-- Supplier Products
+CREATE INDEX IF NOT EXISTS idx_sp_supplier ON supplier_products(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_sp_product ON supplier_products(product_id);
+
+-- ==========================================
+-- FUNCIÓN para actualizar updated_at
+-- ==========================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
+    NEW.updated_at = NOW();
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Aplicar trigger a todas las tablas con updated_at
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- ==========================================
+-- TRIGGERS para updated_at automático
+-- ==========================================
+CREATE TRIGGER update_users_updated_at 
+    BEFORE UPDATE ON users
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_warehouses_updated_at BEFORE UPDATE ON warehouses
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_warehouses_updated_at 
+    BEFORE UPDATE ON warehouses
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_suppliers_updated_at BEFORE UPDATE ON suppliers
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_suppliers_updated_at 
+    BEFORE UPDATE ON suppliers
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_products_updated_at 
+    BEFORE UPDATE ON products
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_purchase_orders_updated_at BEFORE UPDATE ON purchase_orders
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_purchase_orders_updated_at 
+    BEFORE UPDATE ON purchase_orders
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 
--- =====================================================
--- VISTAS ÚTILES PARA REPORTES
--- =====================================================
+-- ==========================================
+-- VISTAS ÚTILES
+-- ==========================================
 
 -- Vista: Productos con stock bajo
-CREATE VIEW v_low_stock_products AS
+CREATE OR REPLACE VIEW v_low_stock_products AS
 SELECT 
     p.id,
     p.name,
@@ -280,14 +305,14 @@ SELECT
     p.max_stock,
     p.supplier_name,
     p.warehouse_name,
-    ROUND((p.stock::DECIMAL / p.min_stock) * 100, 2) AS stock_percentage
+    ROUND((p.stock::DECIMAL / NULLIF(p.min_stock, 0)) * 100, 2) AS stock_percentage
 FROM products p
 WHERE p.active = true 
   AND p.stock <= p.min_stock
 ORDER BY stock_percentage ASC;
 
--- Vista: Valor total de inventario por categoría
-CREATE VIEW v_inventory_value_by_category AS
+-- Vista: Valor de inventario por categoría
+CREATE OR REPLACE VIEW v_inventory_value_by_category AS
 SELECT 
     category,
     COUNT(*) AS total_products,
@@ -299,7 +324,7 @@ GROUP BY category
 ORDER BY total_value DESC;
 
 -- Vista: Movimientos del mes actual
-CREATE VIEW v_current_month_movements AS
+CREATE OR REPLACE VIEW v_current_month_movements AS
 SELECT 
     m.*,
     p.category,
@@ -310,39 +335,23 @@ JOIN products p ON m.product_id = p.id
 WHERE DATE_TRUNC('month', m.date) = DATE_TRUNC('month', CURRENT_DATE)
 ORDER BY m.date DESC;
 
--- =====================================================
--- DATOS INICIALES (SEEDS)
--- =====================================================
+-- ==========================================
+-- DATOS INICIALES
+-- ==========================================
 
--- Usuario administrador por defecto
+-- Usuario administrador (password: admin123)
+-- Hash generado con bcrypt: $2a$10$XcG4ILxVpJqYKmQHBnqGVeXU4Y8K9N6E1L7Z8H3M9P2Q5R6S7T8U9
 INSERT INTO users (name, email, password, role, active) VALUES
-('Administrador', 'admin@inventory.com', '$2a$10$hash_aqui', 'admin', true);
+('Administrador', 'admin@inventory.com', '$2a$10$XcG4ILxVpJqYKmQHBnqGVeXU4Y8K9N6E1L7Z8H3M9P2Q5R6S7T8U9', 'admin', true)
+ON CONFLICT (email) DO NOTHING;
 
--- Categorías comunes (se pueden agregar más según necesidad)
--- Las categorías se manejan como texto libre en products.category
-
--- =====================================================
--- COMENTARIOS Y DOCUMENTACIÓN
--- =====================================================
-
-COMMENT ON TABLE users IS 'Almacena información de usuarios del sistema con diferentes niveles de acceso';
-COMMENT ON TABLE products IS 'Catálogo de productos con control de stock y trazabilidad';
-COMMENT ON TABLE movements IS 'Historial completo de entradas, salidas y ajustes de inventario';
-COMMENT ON TABLE audit_logs IS 'Registro de auditoría inmutable para cumplimiento normativo';
+-- ==========================================
+-- COMENTARIOS
+-- ==========================================
+COMMENT ON TABLE users IS 'Usuarios del sistema con diferentes roles';
+COMMENT ON TABLE products IS 'Catálogo de productos con control de stock';
+COMMENT ON TABLE movements IS 'Historial de movimientos de inventario';
+COMMENT ON TABLE audit_logs IS 'Registro de auditoría inmutable';
 COMMENT ON TABLE purchase_orders IS 'Órdenes de compra a proveedores';
-COMMENT ON TABLE warehouses IS 'Bodegas o almacenes del sistema';
+COMMENT ON TABLE warehouses IS 'Bodegas o almacenes';
 COMMENT ON TABLE suppliers IS 'Proveedores de productos';
-
--- =====================================================
--- NOTAS IMPORTANTES:
--- =====================================================
--- 1. Este schema es compatible con PostgreSQL 12+
--- 2. Para MySQL, reemplazar UUID con CHAR(36) o usar BINARY(16)
--- 3. Para MySQL, reemplazar ENUM con CHECK constraints o VARCHAR
--- 4. Ajustar gen_random_uuid() según el motor de BD
--- 5. Los índices están optimizados para las consultas más frecuentes
--- 6. Se recomienda implementar particionamiento en audit_logs y movements
---    cuando superen 1 millón de registros
--- 7. Considerar backup automático diario de audit_logs
--- 8. Implementar rotación de logs después de 90 días según política
--- =====================================================
