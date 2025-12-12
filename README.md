@@ -41,20 +41,7 @@ Inventory/
 
 ### 1️⃣ Configurar Variables de Entorno
 
-Crea un archivo `.env` en la raíz del proyecto (ya está creado con tus credenciales):
 
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://bnznireqkcwteeqpocmh.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=sb_publishable_mx37g_eCm1Id_Jfyajaxhg_s2PH0lLM
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_WhsLAjMgQ6kvUWjGs1O8ZQ__bn5KcFJ
-DATABASE_URL=postgresql://postgres:123456@db.bnznireqkcwteeqpocmh.supabase.co:5432/postgres
-
-# API
-API_PORT=3001
-FRONTEND_URL=http://localhost:5173
-NODE_ENV=development
-```
 
 ### 2️⃣ Instalar Dependencias
 
