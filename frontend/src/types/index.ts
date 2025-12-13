@@ -27,6 +27,8 @@ export interface Product {
   createdAt: string;
   location?: string;
   warehouse?: string;
+  warehouse_id?: string;
+  warehouse_name?: string;
   barcode?: string;
   qrCode?: string;
   lotNumber?: string;

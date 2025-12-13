@@ -1,32 +1,119 @@
-import { useState } from 'react';
-import { Plus, Building2, MapPin, User, Package, Edit2, Trash2, TrendingUp, BarChart3, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Building2, MapPin, User, Package, Edit2, Trash2, TrendingUp, BarChart3, X, Loader2 } from 'lucide-react';
 import type { Warehouse, Product } from '../types/index';
+import { warehouseService } from '../services/warehouseService';
+import { productService } from '../services/productService';
 
-interface WarehousesViewProps {
-  warehouses: Warehouse[];
-  products: Product[];
-  onSave: (warehouse: Omit<Warehouse, 'id'>) => void;
-  onUpdate: (id: string, warehouse: Partial<Warehouse>) => void;
-  onDelete: (id: string) => void;
-}
-
-export function WarehousesView({ warehouses, products, onSave, onUpdate, onDelete }: WarehousesViewProps) {
+export function WarehousesView() {
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<Warehouse | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Función para cargar warehouses y productos
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [warehousesData, productsData] = await Promise.all([
+        warehouseService.getAll(),
+        productService.getAll()
+      ]);
+      // Asegurar que siempre sean arrays
+      setWarehouses(Array.isArray(warehousesData) ? warehousesData : []);
+      setProducts(Array.isArray(productsData) ? productsData : []);
+    } catch (err) {
+      console.error('Error cargando datos:', err);
+      setError('Error al cargar los datos. Por favor, intenta de nuevo.');
+      // Asegurar que los arrays estén vacíos en caso de error
+      setWarehouses([]);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Crear o actualizar warehouse
+  const handleSave = async (warehouseData: Partial<Warehouse>) => {
+    try {
+      if (editing) {
+        // Actualizar
+        await warehouseService.update(editing.id, warehouseData);
+      } else {
+        // Crear nuevo
+        await warehouseService.create(warehouseData);
+      }
+      await loadData(); // Recargar datos
+      setIsModalOpen(false);
+      setEditing(null);
+    } catch (err) {
+      console.error('Error guardando warehouse:', err);
+      alert('Error al guardar el almacén. Por favor, intenta de nuevo.');
+    }
+  };
+
+  // Eliminar warehouse
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este almacén?')) return;
+    
+    try {
+      await warehouseService.delete(id);
+      await loadData(); // Recargar datos
+    } catch (err) {
+      console.error('Error eliminando warehouse:', err);
+      alert('Error al eliminar el almacén. Por favor, intenta de nuevo.');
+    }
+  };
+
+  // Mostrar loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600">Cargando almacenes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error state
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+        <h3 className="text-red-800 mb-2">Error</h3>
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          onClick={loadData}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
   const activeWarehouses = warehouses.filter(w => w.active).length;
   const totalCapacity = warehouses.reduce((sum, w) => sum + w.capacity, 0);
   
   // Calcular stock por almacén
   const getWarehouseStock = (warehouse: Warehouse) => {
-    const warehouseProducts = products.filter(p => p.warehouse === warehouse.id);
+    if (!Array.isArray(products)) return 0;
+    const warehouseProducts = products.filter(p => p.warehouse_id === warehouse.id);
     return warehouseProducts.reduce((sum, p) => sum + p.stock, 0);
   };
 
   const getWarehouseOccupancy = (warehouse: Warehouse) => {
     const stock = getWarehouseStock(warehouse);
-    return (stock / warehouse.capacity) * 100;
+    return warehouse.capacity > 0 ? (stock / warehouse.capacity) * 100 : 0;
   };
 
   return (
@@ -86,7 +173,7 @@ export function WarehousesView({ warehouses, products, onSave, onUpdate, onDelet
         {warehouses.map(warehouse => {
           const stock = getWarehouseStock(warehouse);
           const occupancy = getWarehouseOccupancy(warehouse);
-          const warehouseProducts = products.filter(p => p.warehouse === warehouse.id);
+          const warehouseProducts = Array.isArray(products) ? products.filter(p => p.warehouse_id === warehouse.id) : [];
 
           return (
             <div key={warehouse.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all">
@@ -163,11 +250,7 @@ export function WarehousesView({ warehouses, products, onSave, onUpdate, onDelet
               </div>
 
               <button
-                onClick={() => {
-                  if (confirm('¿Estás seguro de eliminar este almacén?')) {
-                    onDelete(warehouse.id);
-                  }
-                }}
+                onClick={() => handleDelete(warehouse.id)}
                 className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
               >
                 <Trash2 size={16} />
@@ -191,10 +274,7 @@ export function WarehousesView({ warehouses, products, onSave, onUpdate, onDelet
         <WarehouseModal
           warehouse={editing}
           onClose={() => { setIsModalOpen(false); setEditing(null); }}
-          onSave={(data) => {
-            if (editing) onUpdate(editing.id, data);
-            else onSave(data);
-          }}
+          onSave={handleSave}
         />
       )}
 
@@ -202,7 +282,7 @@ export function WarehousesView({ warehouses, products, onSave, onUpdate, onDelet
       {selectedWarehouse && (
         <WarehouseDetailsModal
           warehouse={selectedWarehouse}
-          products={products.filter(p => p.warehouse === selectedWarehouse.id)}
+          products={products.filter(p => p.warehouse_id === selectedWarehouse.id)}
           onClose={() => setSelectedWarehouse(null)}
         />
       )}

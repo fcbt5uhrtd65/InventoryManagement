@@ -17,6 +17,23 @@ const apiClient = axios.create({
   },
 });
 
+// Interceptor para manejar respuestas
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('Error en productService:', error);
+    if (error.response) {
+      console.error('Error status:', error.response.status);
+      console.error('Error data:', error.response.data);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    } else {
+      console.error('Error message:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Servicio de Productos
  * Expone métodos para consumir la API del backend
@@ -28,7 +45,7 @@ export const productService = {
    */
   async getAll() {
     const response = await apiClient.get('/productos');
-    return response.data;
+    return response.data.data || response.data;
   },
 
   /**

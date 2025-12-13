@@ -572,13 +572,7 @@ function App() {
           )}
 
           {currentView === 'warehouses' && isAdmin(currentUser) && (
-            <WarehousesView
-              warehouses={warehouses}
-              products={products}
-              onSave={handleSaveWarehouse}
-              onUpdate={handleUpdateWarehouse}
-              onDelete={handleDeleteWarehouse}
-            />
+            <WarehousesView />
           )}
 
           {currentView === 'users' && isAdmin(currentUser) && (

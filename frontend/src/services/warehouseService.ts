@@ -18,6 +18,26 @@ const apiClient = axios.create({
   },
 });
 
+// Interceptor para manejar respuestas
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('Error en warehouseService:', error);
+    if (error.response) {
+      // El servidor respondió con un código de error
+      console.error('Error status:', error.response.status);
+      console.error('Error data:', error.response.data);
+    } else if (error.request) {
+      // La petición fue hecha pero no hubo respuesta
+      console.error('No response received:', error.request);
+    } else {
+      // Algo pasó al configurar la petición
+      console.error('Error message:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Servicio de Bodegas
  * Expone métodos para consumir la API del backend
