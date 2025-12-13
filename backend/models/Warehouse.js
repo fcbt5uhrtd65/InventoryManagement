@@ -49,11 +49,11 @@ class Warehouse {
     return data;
   }
 
-  // Eliminar bodega (soft delete)
+  // Eliminar bodega permanentemente
   static async delete(id) {
     const { data, error } = await supabase
       .from('warehouses')
-      .update({ active: false })
+      .delete()
       .eq('id', id)
       .select()
       .single();
