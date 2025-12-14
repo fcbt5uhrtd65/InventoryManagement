@@ -576,13 +576,7 @@ function App() {
           )}
 
           {currentView === 'users' && isAdmin(currentUser) && (
-            <UsersView
-              users={users}
-              onSave={handleSaveUser}
-              onUpdate={handleUpdateUser}
-              onDelete={handleDeleteUser}
-              currentUser={currentUser}
-            />
+            <UsersView />
           )}
 
           {currentView === 'audit' && isAdmin(currentUser) && (

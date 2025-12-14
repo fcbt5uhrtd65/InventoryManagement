@@ -39,7 +39,13 @@ class User {
 
   // Crear usuario
   static async create(userData) {
-    const { nombre, email, password, rol, activo = true, avatar } = userData;
+    // Aceptar tanto campos en español como en inglés
+    const nombre = userData.nombre || userData.name;
+    const email = userData.email;
+    const password = userData.password;
+    const rol = userData.rol || userData.role;
+    const activo = userData.activo !== undefined ? userData.activo : userData.active !== undefined ? userData.active : true;
+    const avatar = userData.avatar;
     
     // Hash de la contraseña
     const saltRounds = 10;
@@ -69,20 +75,30 @@ class User {
 
   // Actualizar usuario
   static async update(id, userData) {
-    const updateData = { ...userData };
-    
-    // Mapear campos a inglés
+    // Mapear campos a inglés (formato de la BD)
     const mappedData = {};
-    if (updateData.nombre) mappedData.name = updateData.nombre;
-    if (updateData.email) mappedData.email = updateData.email;
-    if (updateData.rol) mappedData.role = updateData.rol;
-    if (updateData.activo !== undefined) mappedData.active = updateData.activo;
-    if (updateData.avatar) mappedData.avatar = updateData.avatar;
+    
+    // Aceptar tanto español como inglés
+    if (userData.nombre || userData.name) {
+      mappedData.name = userData.nombre || userData.name;
+    }
+    if (userData.email) {
+      mappedData.email = userData.email;
+    }
+    if (userData.rol || userData.role) {
+      mappedData.role = userData.rol || userData.role;
+    }
+    if (userData.activo !== undefined || userData.active !== undefined) {
+      mappedData.active = userData.activo !== undefined ? userData.activo : userData.active;
+    }
+    if (userData.avatar) {
+      mappedData.avatar = userData.avatar;
+    }
     
     // Si se actualiza la contraseña, hashearla
-    if (updateData.password) {
+    if (userData.password) {
       const saltRounds = 10;
-      mappedData.password = await bcrypt.hash(updateData.password, saltRounds);
+      mappedData.password = await bcrypt.hash(userData.password, saltRounds);
     }
     
     const { data, error } = await supabase
@@ -99,11 +115,11 @@ class User {
     return userWithoutPassword;
   }
 
-  // Eliminar usuario (soft delete)
+  // Eliminar usuario permanentemente
   static async delete(id) {
     const { data, error } = await supabase
       .from('users')
-      .update({ active: false })
+      .delete()
       .eq('id', id)
       .select()
       .single();

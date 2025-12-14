@@ -1,19 +1,102 @@
-import { useState } from 'react';
-import { Plus, Edit2, Trash2, UserCheck, UserX, Shield, User as UserIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, UserCheck, UserX, Shield, User as UserIcon, Loader2 } from 'lucide-react';
 import type { User } from '../types/index';
 import { UserFormModal } from './UserFormModal';
+import { userService } from '../services/userService';
+import { authService } from '../services/authService';
 
-interface UsersViewProps {
-  users: User[];
-  onSave: (user: Omit<User, 'id' | 'createdAt'>) => void;
-  onUpdate: (id: string, user: Partial<User>) => void;
-  onDelete: (id: string) => void;
-  currentUser: User;
-}
-
-export function UsersView({ users, onSave, onUpdate, onDelete, currentUser }: UsersViewProps) {
+export function UsersView() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const currentUser = authService.getCurrentUser();
+
+  // Cargar usuarios al montar el componente
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // Función para cargar usuarios
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const usersData = await userService.getAll();
+      setUsers(Array.isArray(usersData) ? usersData : []);
+    } catch (err) {
+      console.error('Error cargando usuarios:', err);
+      setError('Error al cargar los usuarios. Por favor, intenta de nuevo.');
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Crear o actualizar usuario
+  const handleSave = async (userData: any) => {
+    try {
+      if (editingUser) {
+        await userService.update(editingUser.id, userData);
+      } else {
+        await userService.create(userData);
+      }
+      await loadUsers();
+      setIsModalOpen(false);
+      setEditingUser(null);
+    } catch (err) {
+      console.error('Error guardando usuario:', err);
+      alert('Error al guardar el usuario. Por favor, intenta de nuevo.');
+    }
+  };
+
+  // Actualizar usuario
+  const handleUpdate = async (id: string, userData: Partial<User>) => {
+    try {
+      await userService.update(id, userData);
+      await loadUsers();
+    } catch (err) {
+      console.error('Error actualizando usuario:', err);
+      alert('Error al actualizar el usuario. Por favor, intenta de nuevo.');
+    }
+  };
+
+  // Mostrar loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600">Cargando usuarios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error state
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+        <h3 className="text-red-800 mb-2">Error</h3>
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          onClick={loadUsers}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+        <p className="text-amber-800">No se pudo obtener el usuario actual.</p>
+      </div>
+    );
+  }
 
   const activeUsers = users.filter(u => u.active).length;
   const adminUsers = users.filter(u => u.role === 'admin').length;
@@ -24,13 +107,19 @@ export function UsersView({ users, onSave, onUpdate, onDelete, currentUser }: Us
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (id === currentUser.id) {
       alert('No puedes eliminar tu propia cuenta');
       return;
     }
-    if (confirm('¿Estás seguro de desactivar este usuario?')) {
-      onUpdate(id, { active: false });
+    if (confirm('¿Estás seguro de eliminar este usuario permanentemente?')) {
+      try {
+        await userService.delete(id);
+        await loadUsers();
+      } catch (err) {
+        console.error('Error eliminando usuario:', err);
+        alert('Error al eliminar el usuario. Por favor, intenta de nuevo.');
+      }
     }
   };
 
@@ -39,7 +128,7 @@ export function UsersView({ users, onSave, onUpdate, onDelete, currentUser }: Us
       alert('No puedes desactivar tu propia cuenta');
       return;
     }
-    onUpdate(user.id, { active: !user.active });
+    handleUpdate(user.id, { active: !user.active });
   };
 
   return (
@@ -214,13 +303,7 @@ export function UsersView({ users, onSave, onUpdate, onDelete, currentUser }: Us
           setIsModalOpen(false);
           setEditingUser(null);
         }}
-        onSave={(data) => {
-          if (editingUser) {
-            onUpdate(editingUser.id, data);
-          } else {
-            onSave(data);
-          }
-        }}
+        onSave={handleSave}
         user={editingUser}
       />
     </div>

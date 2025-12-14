@@ -18,6 +18,23 @@ const apiClient = axios.create({
   },
 });
 
+// Interceptor para manejar respuestas
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('Error en userService:', error);
+    if (error.response) {
+      console.error('Error status:', error.response.status);
+      console.error('Error data:', error.response.data);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    } else {
+      console.error('Error message:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Servicio de Usuarios
  * Expone métodos para consumir la API del backend
@@ -29,7 +46,7 @@ export const userService = {
    */
   async getAll(): Promise<User[]> {
     const response = await apiClient.get('/usuarios');
-    return response.data;
+    return response.data.data || response.data;
   },
 
   /**
@@ -38,7 +55,7 @@ export const userService = {
    */
   async getById(id: string): Promise<User> {
     const response = await apiClient.get(`/usuarios/${id}`);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   /**
@@ -47,7 +64,7 @@ export const userService = {
    */
   async create(userData: Partial<User> & { password: string }): Promise<User> {
     const response = await apiClient.post('/usuarios', userData);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   /**
@@ -56,16 +73,16 @@ export const userService = {
    */
   async update(id: string, userData: Partial<User>): Promise<User> {
     const response = await apiClient.put(`/usuarios/${id}`, userData);
-    return response.data;
+    return response.data.data || response.data;
   },
 
   /**
-   * Eliminar un usuario (soft delete)
+   * Eliminar un usuario permanentemente
    * DELETE /api/usuarios/:id
    */
   async delete(id: string): Promise<User> {
     const response = await apiClient.delete(`/usuarios/${id}`);
-    return response.data;
+    return response.data.data || response.data;
   },
 };
 
