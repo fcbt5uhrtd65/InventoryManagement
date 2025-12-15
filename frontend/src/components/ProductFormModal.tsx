@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import type { Product } from '../types/index';
+import type { Product, Supplier, Warehouse } from '../types/index';
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (product: Omit<Product, 'id' | 'createdAt'>) => void;
   product?: Product | null;
+  suppliers: Supplier[];
+  warehouses: Warehouse[];
 }
 
 const categories = ['Electrónica', 'Ropa', 'Alimentos', 'Hogar', 'Deportes', 'Libros', 'Juguetes', 'Herramientas', 'Otro'];
 
-export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFormModalProps) {
+export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, warehouses }: ProductFormModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -23,12 +25,16 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
     minStock: 5,
     maxStock: 100,
     supplier: '',
+    supplierId: '',
+    warehouseId: '',
     image: '',
     active: true,
   });
 
   useEffect(() => {
     if (product) {
+      console.log('Editando producto:', product);
+      console.log('supplierId:', product.supplierId, 'warehouseId:', product.warehouseId);
       const isCustomCategory = !categories.includes(product.category);
       setFormData({
         name: product.name,
@@ -41,6 +47,8 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
         minStock: product.minStock,
         maxStock: product.maxStock,
         supplier: product.supplier,
+        supplierId: product.supplierId || '',
+        warehouseId: product.warehouseId || '',
         image: product.image,
         active: product.active,
       });
@@ -56,6 +64,8 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
         minStock: 5,
         maxStock: 100,
         supplier: '',
+        supplierId: '',
+        warehouseId: '',
         image: '',
         active: true,
       });
@@ -70,11 +80,14 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
       ? formData.customCategory.trim() 
       : formData.category;
     
-    const { customCategory, ...productData } = formData;
+    const { customCategory, supplier, ...productData } = formData;
     
+    // Solo enviar los campos necesarios al backend
     onSave({
       ...productData,
-      category: finalCategory
+      category: finalCategory,
+      // Si hay supplierId, no enviar supplier (nombre)
+      // El backend obtendrá el nombre desde la relación
     });
     onClose();
   };
@@ -162,15 +175,26 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
             )}
 
             <div>
-              <label className="block text-slate-700 mb-2">Proveedor *</label>
-              <input
-                type="text"
-                required
-                value={formData.supplier}
-                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+              <label className="block text-slate-700 mb-2">Proveedor</label>
+              <select
+                value={formData.supplierId}
+                onChange={(e) => {
+                  const selectedSupplier = suppliers.find(s => s.id === e.target.value);
+                  setFormData({ 
+                    ...formData, 
+                    supplierId: e.target.value,
+                    supplier: selectedSupplier?.name || ''
+                  });
+                }}
                 className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Nombre del proveedor"
-              />
+              >
+                <option value="">Sin proveedor asignado</option>
+                {suppliers.filter(s => s.active).map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -226,16 +250,38 @@ export function ProductFormModal({ isOpen, onClose, onSave, product }: ProductFo
               />
             </div>
             
+            <div>
+              <label className="block text-slate-700 mb-2">Almacén (Opcional)</label>
+              <select
+                value={formData.warehouseId}
+                onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Sin asignar</option>
+                {warehouses.filter(w => w.active).map((warehouse) => (
+                  <option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="md:col-span-2">
               <label className="block text-slate-700 mb-2">URL de Imagen *</label>
               <input
                 type="url"
                 required
+                maxLength={500}
                 value={formData.image}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${
+                  formData.image.length > 500 ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 focus:ring-indigo-500'
+                }`}
                 placeholder="https://example.com/image.jpg"
               />
+              <p className={`text-sm mt-1 ${formData.image.length > 450 ? 'text-amber-600' : 'text-slate-500'}`}>
+                {formData.image.length}/500 caracteres {formData.image.length > 500 && '⚠️ URL demasiado larga'}
+              </p>
             </div>
 
             <div className="md:col-span-2">

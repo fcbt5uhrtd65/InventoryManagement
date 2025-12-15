@@ -1,18 +1,20 @@
 import { useState } from 'react';
-import { Plus, Search, Filter, FileDown, Edit2, Trash2, AlertCircle } from 'lucide-react';
-import type { Product, User } from '../types/index';
+import { Plus, Search, Filter, FileDown, Edit2, Trash2, AlertCircle, Package } from 'lucide-react';
+import type { Product, User, Supplier, Warehouse } from '../types/index';
 import { getStockStatus } from '../utils/stockUtils';
 import { ProductFormModal } from './ProductFormModal';
 
 interface ProductsViewProps {
   products: Product[];
+  suppliers: Supplier[];
+  warehouses: Warehouse[];
   onSave: (product: Omit<Product, 'id' | 'createdAt'>) => void;
   onUpdate: (id: string, product: Partial<Product>) => void;
   onDelete: (id: string) => void;
   user: User;
 }
 
-export function ProductsView({ products, onSave, onUpdate, onDelete, user }: ProductsViewProps) {
+export function ProductsView({ products, suppliers, warehouses, onSave, onUpdate, onDelete, user }: ProductsViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -143,7 +145,13 @@ export function ProductsView({ products, onSave, onUpdate, onDelete, user }: Pro
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded-lg" />
+                        {product.image ? (
+                          <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded-lg" />
+                        ) : (
+                          <div className="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400">
+                            <Package size={20} />
+                          </div>
+                        )}
                         <div>
                           <p>{product.name}</p>
                           <p className="text-slate-500">{product.description.substring(0, 40)}...</p>
@@ -169,7 +177,7 @@ export function ProductsView({ products, onSave, onUpdate, onDelete, user }: Pro
                       <p>${product.price.toFixed(2)}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-slate-600">{product.supplier}</p>
+                      <p className="text-slate-600">{product.supplier || 'Sin asignar'}</p>
                     </td>
                     <td className="px-6 py-4">
                       <div className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit ${
@@ -227,6 +235,8 @@ export function ProductsView({ products, onSave, onUpdate, onDelete, user }: Pro
           }
         }}
         product={editingProduct}
+        suppliers={suppliers}
+        warehouses={warehouses}
       />
     </div>
   );

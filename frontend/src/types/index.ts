@@ -22,13 +22,12 @@ export interface Product {
   maxStock: number;
   supplier: string;
   supplierId?: string;
+  warehouseId?: string;
   image: string;
   active: boolean;
   createdAt: string;
   location?: string;
   warehouse?: string;
-  warehouse_id?: string;
-  warehouse_name?: string;
   barcode?: string;
   qrCode?: string;
   lotNumber?: string;

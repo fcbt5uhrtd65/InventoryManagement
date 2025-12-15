@@ -18,12 +18,31 @@ class Product {
   static async getAll() {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select(`
+        *,
+        suppliers:supplier_id (
+          id,
+          name
+        ),
+        warehouses:warehouse_id (
+          id,
+          name
+        )
+      `)
       .eq('active', true)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    
+    // Mapear los datos para incluir el nombre del proveedor y almacén
+    return data.map(product => ({
+      ...product,
+      supplier_name: product.suppliers?.name || product.supplier_name || '',
+      warehouse_name: product.warehouses?.name || product.warehouse_name || '',
+      // Asegurar que los IDs estén disponibles
+      supplier_id: product.supplier_id,
+      warehouse_id: product.warehouse_id
+    }));
   }
 
   /**
@@ -34,12 +53,31 @@ class Product {
   static async getById(id) {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select(`
+        *,
+        suppliers:supplier_id (
+          id,
+          name
+        ),
+        warehouses:warehouse_id (
+          id,
+          name
+        )
+      `)
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
-    return data;
+    if (!data) throw new Error('Producto no encontrado');
+    
+    // Mapear nombres
+    return {
+      ...data,
+      supplier_name: data.suppliers?.name || data.supplier_name || '',
+      warehouse_name: data.warehouses?.name || data.warehouse_name || '',
+      supplier_id: data.supplier_id,
+      warehouse_id: data.warehouse_id
+    };
   }
 
   /**
@@ -59,15 +97,35 @@ class Product {
         max_stock: productData.max_stock || 100,
         code: productData.code || productData.codigo,
         category: productData.category || productData.categoria,
-        supplier_name: productData.supplier || productData.supplier_name,
+        supplier_id: productData.supplierId || productData.supplier_id || null,
+        supplier_name: productData.supplier || productData.supplier_name || null,
+        warehouse_id: productData.warehouseId || productData.warehouse_id || null,
         image: productData.image,
         active: true
       }])
-      .select()
+      .select(`
+        *,
+        suppliers:supplier_id (
+          id,
+          name
+        ),
+        warehouses:warehouse_id (
+          id,
+          name
+        )
+      `)
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Mapear nombres y asegurar IDs
+    return {
+      ...data,
+      supplier_name: data.suppliers?.name || data.supplier_name || '',
+      warehouse_name: data.warehouses?.name || data.warehouse_name || '',
+      supplier_id: data.supplier_id,
+      warehouse_id: data.warehouse_id
+    };
   }
 
   /**
@@ -77,15 +135,29 @@ class Product {
    * @returns {Promise<Object>} Producto actualizado
    */
   static async update(id, productData) {
-    const { data, error } = await supabase
+    // Preparar los datos para actualizar
+    const updateData = { ...productData };
+    
+    // Si se está actualizando el proveedor por nombre, buscar el ID
+    if (productData.supplierId) {
+      updateData.supplier_id = productData.supplierId;
+      delete updateData.supplierId;
+    }
+    if (productData.warehouseId) {
+      updateData.warehouse_id = productData.warehouseId;
+      delete updateData.warehouseId;
+    }
+    
+    // Actualizar el producto
+    const { error: updateError } = await supabase
       .from('products')
-      .update(productData)
-      .eq('id', id)
-      .select()
-      .single();
+      .update(updateData)
+      .eq('id', id);
 
-    if (error) throw error;
-    return data;
+    if (updateError) throw updateError;
+    
+    // Obtener el producto actualizado (usando getById que ya funciona)
+    return this.getById(id);
   }
 
   /**

@@ -5,6 +5,7 @@ import authService from './services/authService';
 import productService from './services/productService';
 import movementService from './services/movementService';
 import supplierService from './services/supplierService';
+import warehouseService from './services/warehouseService';
 import { getProducts, saveProducts, getMovements, addMovement, getSuppliers, saveSuppliers, initializeSuppliers, getWarehouses, saveWarehouses, initializeWarehouses } from './utils/storage';
 import { getAuditLogs, addAuditLog } from './utils/auditLog';
 import { LandingPage } from './components/LandingPage';
@@ -49,6 +50,7 @@ function App() {
       loadProducts();
       loadMovements();
       loadSuppliers();
+      loadWarehouses();
     }
 
     setUsers(getAllUsers());
@@ -60,9 +62,13 @@ function App() {
   const loadProducts = async () => {
     try {
       const response = await productService.getAll();
-      if (response.success && response.data) {
+      console.log('Productos response:', response);
+      // productService.getAll() retorna directamente el array o { success, data }
+      const productsArray = Array.isArray(response) ? response : (response.data || []);
+      
+      if (productsArray && productsArray.length > 0) {
         // Mapear los datos del backend (snake_case) al frontend (camelCase)
-        const mappedProducts = response.data.map((p: any) => ({
+        const mappedProducts = productsArray.map((p: any) => ({
           id: p.id,
           name: p.name,
           description: p.description,
@@ -74,18 +80,23 @@ function App() {
           minStock: p.min_stock,
           maxStock: p.max_stock,
           supplier: p.supplier_name || '',
-          supplierId: p.supplier_id,
+          supplierId: p.supplier_id || '',
+          warehouseId: p.warehouse_id || '',
           image: p.image || '',
           active: p.active,
           createdAt: p.created_at,
           location: p.location,
-          warehouse: p.warehouse_name,
+          warehouse: p.warehouse_name || '',
           barcode: p.barcode,
           qrCode: p.qr_code,
           lotNumber: p.lot_number,
           expirationDate: p.expiration_date,
         }));
         setProducts(mappedProducts);
+        console.log('Productos cargados:', mappedProducts.length);
+      } else {
+        console.log('No hay productos en la respuesta');
+        setProducts([]);
       }
     } catch (error) {
       console.error('Error al cargar productos:', error);
@@ -98,6 +109,7 @@ function App() {
   const loadMovements = async () => {
     try {
       const response = await movementService.getAll();
+      console.log('Movimientos response:', response);
       if (response.success && response.data) {
         // Mapear los datos del backend (snake_case) al frontend (camelCase)
         const mappedMovements = response.data.map((m: any) => ({
@@ -115,6 +127,7 @@ function App() {
           warehouse: m.warehouse_name
         }));
         setMovements(mappedMovements);
+        console.log('Movimientos cargados:', mappedMovements.length);
       }
     } catch (error) {
       console.error('Error al cargar movimientos:', error);
@@ -127,6 +140,7 @@ function App() {
   const loadSuppliers = async () => {
     try {
       const response = await supplierService.getAll();
+      console.log('Proveedores response:', response);
       if (response.success && response.data) {
         // Mapear los datos del backend (snake_case) al frontend (camelCase)
         const mappedSuppliers = response.data.map((s: any) => ({
@@ -142,6 +156,7 @@ function App() {
           createdAt: s.created_at,
         }));
         setSuppliers(mappedSuppliers);
+        console.log('Proveedores cargados:', mappedSuppliers.length);
       }
     } catch (error) {
       console.error('Error al cargar proveedores:', error);
@@ -149,7 +164,35 @@ function App() {
       setSuppliers(getSuppliers());
     }
   };
-
+  // Función para cargar almacenes desde el backend
+  const loadWarehouses = async () => {
+    try {
+      const response = await warehouseService.getAll();
+      console.log('Almacenes response:', response);
+      // Puede venir como array directo o como { success, data }
+      const warehousesArray = Array.isArray(response) ? response : (response.data || []);
+      if (warehousesArray && warehousesArray.length >= 0) {
+        // Mapear los datos del backend (snake_case) al frontend (camelCase)
+        const mappedWarehouses = warehousesArray.map((w: any) => ({
+          id: w.id,
+          name: w.name,
+          location: w.location,
+          capacity: w.capacity,
+          currentStock: w.current_stock || 0,
+          active: w.active,
+          createdAt: w.created_at,
+        }));
+        setWarehouses(mappedWarehouses);
+        console.log('Almacenes cargados:', mappedWarehouses.length);
+      } else {
+        setWarehouses([]);
+      }
+    } catch (error) {
+      console.error('Error al cargar almacenes:', error);
+      // Si falla, usar localStorage como fallback
+      setWarehouses(getWarehouses());
+    }
+  };
   const handleLogin = async (email: string, password: string) => {
     try {
       const response = await authService.login(email, password);
@@ -160,6 +203,11 @@ function App() {
         setAuditLogs(getAuditLogs());
         setShowLanding(false);
         setShowRegister(false);
+        // Cargar datos del backend después del login
+        loadProducts();
+        loadMovements();
+        loadSuppliers();
+        loadWarehouses();
       } else {
         setLoginError(response.message || 'Credenciales incorrectas');
       }
@@ -178,6 +226,11 @@ function App() {
         setShowLanding(false);
         addAuditLog(response.user.id, response.user.name, 'Se registró', 'Sistema', response.user.id, `Usuario ${response.user.name} creó una cuenta nueva`);
         setAuditLogs(getAuditLogs());
+        // Cargar datos del backend después del registro
+        loadProducts();
+        loadMovements();
+        loadSuppliers();
+        loadWarehouses();
       } else {
         setRegisterError(response.message || 'Error al registrar usuario');
       }
@@ -200,6 +253,12 @@ function App() {
   // Product handlers
   const handleSaveProduct = async (productData: Omit<Product, 'id' | 'createdAt'>) => {
     try {
+      // Validar longitud de imagen
+      if (productData.image && productData.image.length > 500) {
+        alert('La URL de la imagen es demasiado larga (máximo 500 caracteres). Por favor, usa una URL más corta.');
+        return;
+      }
+      
       const response = await productService.create(productData);
       if (response.success && response.data) {
         // Mapear datos del servidor (snake_case a camelCase)
@@ -215,12 +274,13 @@ function App() {
           minStock: response.data.min_stock,
           maxStock: response.data.max_stock,
           supplier: response.data.supplier_name || '',
-          supplierId: response.data.supplier_id,
+          supplierId: response.data.supplier_id || '',
+          warehouseId: response.data.warehouse_id || '',
           image: response.data.image || '',
           active: response.data.active,
           createdAt: response.data.created_at,
           location: response.data.location,
-          warehouse: response.data.warehouse_name,
+          warehouse: response.data.warehouse_name || '',
           barcode: response.data.barcode,
           qrCode: response.data.qr_code,
           lotNumber: response.data.lot_number,
@@ -242,7 +302,16 @@ function App() {
 
   const handleUpdateProduct = async (id: string, productData: Partial<Product>) => {
     try {
-      const response = await productService.update(id, productData);
+      // Limpiar datos antes de enviar - remover campos calculados/relacionados
+      const { supplier, warehouse, createdAt, ...cleanData } = productData;
+      
+      // Validar longitud de imagen
+      if (cleanData.image && cleanData.image.length > 500) {
+        alert('La URL de la imagen es demasiado larga (máximo 500 caracteres)');
+        return;
+      }
+      
+      const response = await productService.update(id, cleanData);
       if (response.success && response.data) {
         // Mapear datos del servidor (snake_case a camelCase)
         const mappedProduct = {
@@ -257,12 +326,13 @@ function App() {
           minStock: response.data.min_stock,
           maxStock: response.data.max_stock,
           supplier: response.data.supplier_name || '',
-          supplierId: response.data.supplier_id,
+          supplierId: response.data.supplier_id || '',
+          warehouseId: response.data.warehouse_id || '',
           image: response.data.image || '',
           active: response.data.active,
           createdAt: response.data.created_at,
           location: response.data.location,
-          warehouse: response.data.warehouse_name,
+          warehouse: response.data.warehouse_name || '',
           barcode: response.data.barcode,
           qrCode: response.data.qr_code,
           lotNumber: response.data.lot_number,
@@ -537,6 +607,8 @@ function App() {
           {currentView === 'products' && (
             <ProductsView
               products={products}
+              suppliers={suppliers}
+              warehouses={warehouses}
               onSave={handleSaveProduct}
               onUpdate={handleUpdateProduct}
               onDelete={handleDeleteProduct}

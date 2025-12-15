@@ -127,6 +127,8 @@ export const actualizarProducto = async (req, res) => {
     if (productData.code !== undefined) mappedData.code = productData.code;
     if (productData.category !== undefined) mappedData.category = productData.category;
     if (productData.supplier !== undefined) mappedData.supplier_name = productData.supplier;
+    if (productData.supplierId !== undefined) mappedData.supplier_id = productData.supplierId || null;
+    if (productData.warehouseId !== undefined) mappedData.warehouse_id = productData.warehouseId || null;
     if (productData.image !== undefined) mappedData.image = productData.image;
     if (productData.active !== undefined) mappedData.active = productData.active;
     
