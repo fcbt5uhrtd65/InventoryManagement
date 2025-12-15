@@ -15,6 +15,7 @@ import movementRoutes from './routes/movementRoutes.js';
 import supplierRoutes from './routes/supplierRoutes.js';
 import warehouseRoutes from './routes/warehouseRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
+import purchaseOrderRoutes from './routes/purchaseOrderRoutes.js';
 
 // Obtener __dirname en ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -72,7 +73,8 @@ app.get('/', (req, res) => {
       movimientos: '/api/movimientos',
       proveedores: '/api/proveedores',
       bodegas: '/api/bodegas',
-      auditoria: '/api/auditoria'
+      auditoria: '/api/auditoria',
+      ordenesCompra: '/api/ordenes-compra'
     }
   });
 });
@@ -97,6 +99,9 @@ app.use('/api/bodegas', warehouseRoutes);
 
 // Rutas de auditoría
 app.use('/api/auditoria', auditRoutes);
+
+// Rutas de órdenes de compra
+app.use('/api/ordenes-compra', purchaseOrderRoutes);
 
 // ==================== MANEJO DE ERRORES ====================
 

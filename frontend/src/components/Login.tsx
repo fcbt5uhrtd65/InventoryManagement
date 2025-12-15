@@ -166,50 +166,7 @@ export function Login({ onLogin, onShowRegister, error }: LoginProps) {
                 </p>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-slate-200">
-                <p className="text-slate-500 text-center mb-4 text-sm flex items-center justify-center gap-2">
-                  <Shield size={16} />
-                  Credenciales de prueba
-                </p>
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('admin@sgii.com');
-                      setPassword('admin123');
-                    }}
-                    className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-500 rounded-lg">
-                        <Shield size={16} className="text-white" />
-                      </div>
-                      <div className="text-left flex-1">
-                        <p className="text-slate-900">Administrador</p>
-                        <p className="text-slate-500 text-sm">admin@sgii.com / admin123</p>
-                      </div>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('empleado@sgii.com');
-                      setPassword('emp123');
-                    }}
-                    className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-600 rounded-lg">
-                        <Users size={16} className="text-white" />
-                      </div>
-                      <div className="text-left flex-1">
-                        <p className="text-slate-900">Empleado</p>
-                        <p className="text-slate-500 text-sm">empleado@sgii.com / emp123</p>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              </div>
+              
             </div>
           </div>
         </div>

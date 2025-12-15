@@ -21,6 +21,7 @@ import { UsersView } from './components/UsersView';
 import { SuppliersView } from './components/SuppliersView';
 import { WarehousesView } from './components/WarehousesView';
 import { AuditView } from './components/AuditView';
+import { PurchaseOrdersView } from './components/PurchaseOrdersView';
 
 function App() {
   const [showLanding, setShowLanding] = useState(true);
@@ -631,6 +632,14 @@ function App() {
 
           {currentView === 'reports' && (
             <ReportsView products={products} movements={movements} />
+          )}
+
+          {currentView === 'purchase-orders' && (currentUser?.role === 'admin' || currentUser?.role === 'encargado_bodega') && (
+            <PurchaseOrdersView
+              products={products}
+              suppliers={suppliers}
+              currentUser={currentUser}
+            />
           )}
 
           {currentView === 'suppliers' && isAdmin(currentUser) && (

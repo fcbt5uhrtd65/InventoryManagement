@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Building2,
   Truck,
-  History
+  History,
+  ShoppingCart
 } from 'lucide-react';
 import type { User } from '../types/index';
 import { useState } from 'react';
@@ -31,6 +32,9 @@ export function Sidebar({ currentView, onViewChange, user, onLogout }: SidebarPr
     { id: 'movements', label: 'Movimientos', icon: ArrowLeftRight, color: 'emerald' },
     { id: 'alerts', label: 'Alertas', icon: Bell, color: 'amber' },
     { id: 'reports', label: 'Reportes', icon: BarChart3, color: 'cyan' },
+    ...(user.role === 'admin' || user.role === 'encargado_bodega' ? [
+      { id: 'purchase-orders', label: 'Órdenes de Compra', icon: ShoppingCart, color: 'teal' },
+    ] : []),
     ...(user.role === 'admin' ? [
       { id: 'suppliers', label: 'Proveedores', icon: Truck, color: 'orange' },
       { id: 'warehouses', label: 'Almacenes', icon: Building2, color: 'indigo' },
@@ -45,6 +49,7 @@ export function Sidebar({ currentView, onViewChange, user, onLogout }: SidebarPr
     emerald: 'from-emerald-600 to-emerald-700',
     amber: 'from-amber-600 to-amber-700',
     cyan: 'from-cyan-600 to-cyan-700',
+    teal: 'from-teal-600 to-teal-700',
     orange: 'from-orange-600 to-orange-700',
     indigo: 'from-indigo-600 to-indigo-700',
     pink: 'from-pink-600 to-pink-700',

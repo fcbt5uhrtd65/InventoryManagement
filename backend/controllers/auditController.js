@@ -98,3 +98,40 @@ export const obtenerHistorialEntidad = async (req, res) => {
     });
   }
 };
+
+// Agregar un registro de auditoría (función auxiliar)
+export const addAuditLog = async (req, res) => {
+  try {
+    const { user_id, user_name, action, entity, entity_id, details } = req.body;
+    
+    const logData = {
+      user_id,
+      user_name,
+      action,
+      entity,
+      entity_id,
+      details,
+      timestamp: new Date().toISOString()
+    };
+    
+    await AuditLog.create(logData);
+    
+    // Si se llama desde otro controlador, no enviar respuesta
+    if (res && typeof res.status === 'function') {
+      res.status(201).json({
+        success: true,
+        message: 'Registro de auditoría creado'
+      });
+    }
+  } catch (error) {
+    console.error('Error al crear registro de auditoría:', error);
+    if (res && typeof res.status === 'function') {
+      res.status(500).json({
+        success: false,
+        message: 'Error al crear registro de auditoría',
+        error: error.message
+      });
+    }
+  }
+};
+
