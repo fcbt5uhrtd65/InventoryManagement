@@ -45,7 +45,7 @@ export function AlertsView({ products }: AlertsViewProps) {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Critical Stock Card */}
-        <div className="group relative bg-linear-to-br from-red-500 via-red-600 to-red-700 text-white rounded-3xl shadow-xl p-8 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden">
+        <div className="group relative bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white rounded-3xl shadow-xl p-8 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden">
           {/* Decorative circles */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-black/10 rounded-full blur-2xl"></div>
@@ -75,7 +75,7 @@ export function AlertsView({ products }: AlertsViewProps) {
         </div>
 
         {/* Warning Stock Card */}
-        <div className="group relative bg-linear-to-br from-amber-500 via-orange-600 to-orange-700 text-white rounded-3xl shadow-xl p-8 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden">
+        <div className="group relative bg-gradient-to-br from-amber-500 via-orange-600 to-orange-700 text-white rounded-3xl shadow-xl p-8 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden">
           {/* Decorative circles */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-black/10 rounded-full blur-2xl"></div>
@@ -105,7 +105,7 @@ export function AlertsView({ products }: AlertsViewProps) {
         </div>
 
         {/* Good Stock Card */}
-        <div className="group relative bg-linear-to-br from-emerald-500 via-green-600 to-teal-700 text-white rounded-3xl shadow-xl p-8 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden">
+        <div className="group relative bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700 text-white rounded-3xl shadow-xl p-8 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden">
           {/* Decorative circles */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-black/10 rounded-full blur-2xl"></div>
