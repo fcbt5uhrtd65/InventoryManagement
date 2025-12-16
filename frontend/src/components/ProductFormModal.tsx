@@ -80,14 +80,14 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
       ? formData.customCategory.trim() 
       : formData.category;
     
-    const { customCategory, supplier, ...productData } = formData;
+    const { customCategory, ...productData } = formData;
     
     // Solo enviar los campos necesarios al backend
     onSave({
       ...productData,
       category: finalCategory,
-      // Si hay supplierId, no enviar supplier (nombre)
-      // El backend obtendrá el nombre desde la relación
+      supplier: formData.supplier || '',
+      // El backend obtendrá el nombre del proveedor desde la relación si hay supplierId
     });
     onClose();
   };

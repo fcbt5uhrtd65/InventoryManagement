@@ -19,6 +19,8 @@ export function ProductsView({ products, suppliers, warehouses, onSave, onUpdate
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 12;
 
   const categories = ['Todas', ...Array.from(new Set(products.map(p => p.category)))];
   
@@ -29,6 +31,23 @@ export function ProductsView({ products, suppliers, warehouses, onSave, onUpdate
     const matchesCategory = selectedCategory === 'Todas' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  // Cálculo de paginación
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Resetear página al cambiar filtros
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+    setCurrentPage(1);
+  };
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
@@ -93,7 +112,7 @@ export function ProductsView({ products, suppliers, warehouses, onSave, onUpdate
               type="text"
               placeholder="Buscar por nombre, código o proveedor..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -101,7 +120,7 @@ export function ProductsView({ products, suppliers, warehouses, onSave, onUpdate
             <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => handleCategoryChange(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-white"
             >
               {categories.map(cat => (
@@ -136,7 +155,7 @@ export function ProductsView({ products, suppliers, warehouses, onSave, onUpdate
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredProducts.map(product => {
+              {currentProducts.map(product => {
                 const status = getStockStatus(product);
                 return (
                   <tr key={product.id} className="hover:bg-slate-50 transition-colors">
@@ -217,6 +236,48 @@ export function ProductsView({ products, suppliers, warehouses, onSave, onUpdate
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-slate-400">No se encontraron productos</p>
+          </div>
+        )}
+
+        {/* Paginación */}
+        {filteredProducts.length > productsPerPage && (
+          <div className="border-t border-slate-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-slate-600">
+                Mostrando {startIndex + 1} - {Math.min(endIndex, filteredProducts.length)} de {filteredProducts.length} productos
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        currentPage === page
+                          ? 'bg-indigo-600 text-white'
+                          : 'border border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
