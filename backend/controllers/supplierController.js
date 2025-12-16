@@ -6,9 +6,28 @@ export const obtenerProveedores = async (req, res) => {
   try {
     const proveedores = await Supplier.getAll();
     
+    // Para cada proveedor, obtener sus productos desde supplier_products
+    const proveedoresConProductos = await Promise.all(
+      proveedores.map(async (proveedor) => {
+        try {
+          const productos = await Supplier.getProductos(proveedor.id);
+          return {
+            ...proveedor,
+            products: productos.map(p => p.id) // Solo IDs para compatibilidad
+          };
+        } catch (error) {
+          console.error(`Error al obtener productos del proveedor ${proveedor.id}:`, error);
+          return {
+            ...proveedor,
+            products: []
+          };
+        }
+      })
+    );
+    
     res.json({
       success: true,
-      data: proveedores
+      data: proveedoresConProductos
     });
   } catch (error) {
     console.error('Error al obtener proveedores:', error);

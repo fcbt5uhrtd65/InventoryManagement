@@ -6,11 +6,22 @@ class User {
   static async getAll() {
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select(`
+        *,
+        warehouses:warehouse_id (
+          id,
+          name
+        )
+      `)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data;
+    
+    // Mapear warehouse info
+    return data.map(user => ({
+      ...user,
+      warehouse_name: user.warehouses?.name || null
+    }));
   }
 
   // Obtener usuario por ID
@@ -46,6 +57,7 @@ class User {
     const rol = userData.rol || userData.role;
     const activo = userData.activo !== undefined ? userData.activo : userData.active !== undefined ? userData.active : true;
     const avatar = userData.avatar;
+    const warehouseId = userData.warehouseId || userData.warehouse_id || null;
     
     // Hash de la contraseña
     const saltRounds = 10;
@@ -60,7 +72,8 @@ class User {
           password: hashedPassword,
           role: rol,
           active: activo,
-          avatar
+          avatar,
+          warehouse_id: warehouseId
         }
       ])
       .select()
@@ -93,6 +106,9 @@ class User {
     }
     if (userData.avatar) {
       mappedData.avatar = userData.avatar;
+    }
+    if (userData.warehouseId !== undefined || userData.warehouse_id !== undefined) {
+      mappedData.warehouse_id = userData.warehouseId || userData.warehouse_id;
     }
     
     // Si se actualiza la contraseña, hashearla

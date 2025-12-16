@@ -7,6 +7,9 @@ export interface User {
   active: boolean;
   createdAt: string;
   avatar?: string;
+  warehouseId?: string;
+  warehouse_id?: string;
+  warehouse_name?: string;
 }
 
 export interface Product {
@@ -23,6 +26,8 @@ export interface Product {
   supplier: string;
   supplierId?: string;
   warehouseId?: string;
+  warehouseIds?: string[];
+  warehouse_name?: string;
   image: string;
   active: boolean;
   createdAt: string;

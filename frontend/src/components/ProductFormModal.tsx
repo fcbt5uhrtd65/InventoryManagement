@@ -27,6 +27,7 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
     supplier: '',
     supplierId: '',
     warehouseId: '',
+    warehouseIds: [] as string[],
     image: '',
     active: true,
   });
@@ -34,7 +35,7 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
   useEffect(() => {
     if (product) {
       console.log('Editando producto:', product);
-      console.log('supplierId:', product.supplierId, 'warehouseId:', product.warehouseId);
+      console.log('supplierId:', product.supplierId, 'warehouseId:', product.warehouseId, 'warehouseIds:', product.warehouseIds);
       const isCustomCategory = !categories.includes(product.category);
       setFormData({
         name: product.name,
@@ -49,6 +50,7 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
         supplier: product.supplier,
         supplierId: product.supplierId || '',
         warehouseId: product.warehouseId || '',
+        warehouseIds: product.warehouseIds || (product.warehouseId ? [product.warehouseId] : []),
         image: product.image,
         active: product.active,
       });
@@ -66,6 +68,7 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
         supplier: '',
         supplierId: '',
         warehouseId: '',
+        warehouseIds: [],
         image: '',
         active: true,
       });
@@ -82,11 +85,14 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
     
     const { customCategory, ...productData } = formData;
     
+    console.log('Enviando producto con warehouseIds:', productData.warehouseIds);
+    
     // Solo enviar los campos necesarios al backend
     onSave({
       ...productData,
       category: finalCategory,
       supplier: formData.supplier || '',
+      warehouseIds: formData.warehouseIds, // Asegurar que se envía el array
       // El backend obtendrá el nombre del proveedor desde la relación si hay supplierId
     });
     onClose();
@@ -97,7 +103,7 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
   return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-linear-to-r from-purple-600 to-indigo-600 p-6 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 p-6 flex items-center justify-between rounded-t-2xl">
           <h3 className="text-white">{product ? 'Editar Producto' : 'Nuevo Producto'}</h3>
           <button
             onClick={onClose}
@@ -250,20 +256,49 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
               />
             </div>
             
-            <div>
-              <label className="block text-slate-700 mb-2">Almacén (Opcional)</label>
-              <select
-                value={formData.warehouseId}
-                onChange={(e) => setFormData({ ...formData, warehouseId: e.target.value })}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">Sin asignar</option>
-                {warehouses.filter(w => w.active).map((warehouse) => (
-                  <option key={warehouse.id} value={warehouse.id}>
-                    {warehouse.name}
-                  </option>
-                ))}
-              </select>
+            <div className="md:col-span-2">
+              <label className="block text-slate-700 mb-2">Almacenes (Opcional)</label>
+              <div className="border border-slate-300 rounded-xl p-4 max-h-48 overflow-y-auto bg-slate-50">
+                {warehouses.filter(w => w.active).length === 0 ? (
+                  <p className="text-slate-500 text-sm">No hay almacenes disponibles</p>
+                ) : (
+                  <div className="space-y-2">
+                    {warehouses.filter(w => w.active).map((warehouse) => (
+                      <label key={warehouse.id} className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={formData.warehouseIds.includes(warehouse.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({ 
+                                ...formData, 
+                                warehouseIds: [...formData.warehouseIds, warehouse.id],
+                                warehouseId: formData.warehouseIds.length === 0 ? warehouse.id : formData.warehouseId
+                              });
+                            } else {
+                              const newWarehouseIds = formData.warehouseIds.filter(id => id !== warehouse.id);
+                              setFormData({ 
+                                ...formData, 
+                                warehouseIds: newWarehouseIds,
+                                warehouseId: newWarehouseIds[0] || ''
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <span className="text-slate-700 font-medium">{warehouse.name}</span>
+                        <span className="text-slate-500 text-sm ml-auto">{warehouse.location}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <p className="text-slate-500 text-sm mt-2">
+                {formData.warehouseIds.length === 0 
+                  ? 'Selecciona uno o más almacenes donde se almacenará este producto'
+                  : `${formData.warehouseIds.length} almacén(es) seleccionado(s)`
+                }
+              </p>
             </div>
 
             <div className="md:col-span-2">
@@ -307,9 +342,9 @@ export function ProductFormModal({ isOpen, onClose, onSave, product, suppliers, 
             </button>
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-colors"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-colors font-medium shadow-sm"
             >
-              {product ? 'Actualizar' : 'Guardar'}
+              {product ? 'Actualizar Producto' : 'Crear Producto'}
             </button>
           </div>
         </form>

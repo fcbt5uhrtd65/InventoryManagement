@@ -107,7 +107,10 @@ export function WarehousesView() {
   // Calcular stock por almacén
   const getWarehouseStock = (warehouse: Warehouse) => {
     if (!Array.isArray(products)) return 0;
-    const warehouseProducts = products.filter(p => p.warehouse_id === warehouse.id);
+    const warehouseProducts = products.filter(p => 
+      p.warehouseIds?.includes(warehouse.id) || 
+      (p.warehouse_id === warehouse.id && (!p.warehouseIds || p.warehouseIds.length === 0))
+    );
     return warehouseProducts.reduce((sum, p) => sum + p.stock, 0);
   };
 
@@ -173,7 +176,10 @@ export function WarehousesView() {
         {warehouses.map(warehouse => {
           const stock = getWarehouseStock(warehouse);
           const occupancy = getWarehouseOccupancy(warehouse);
-          const warehouseProducts = Array.isArray(products) ? products.filter(p => p.warehouse_id === warehouse.id) : [];
+          const warehouseProducts = Array.isArray(products) ? products.filter(p => 
+            p.warehouseIds?.includes(warehouse.id) || 
+            (p.warehouse_id === warehouse.id && (!p.warehouseIds || p.warehouseIds.length === 0))
+          ) : [];
 
           return (
             <div key={warehouse.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all">
@@ -282,7 +288,10 @@ export function WarehousesView() {
       {selectedWarehouse && (
         <WarehouseDetailsModal
           warehouse={selectedWarehouse}
-          products={products.filter(p => p.warehouse_id === selectedWarehouse.id)}
+          products={products.filter(p => 
+            p.warehouseIds?.includes(selectedWarehouse.id) || 
+            (p.warehouse_id === selectedWarehouse.id && (!p.warehouseIds || p.warehouseIds.length === 0))
+          )}
           onClose={() => setSelectedWarehouse(null)}
         />
       )}

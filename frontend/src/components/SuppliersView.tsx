@@ -26,7 +26,11 @@ export function SuppliersView({ suppliers, products, onSave, onUpdate, onDelete 
   const totalProducts = suppliers.reduce((sum, s) => sum + s.products.length, 0);
 
   const getSupplierProducts = (supplier: Supplier) => {
-    return products.filter(p => supplier.products.includes(p.id));
+    // Filtrar productos que tienen el supplierId igual al id del proveedor
+    // o que están en el array de products del proveedor
+    return products.filter(p => 
+      p.supplierId === supplier.id || supplier.products.includes(p.id)
+    );
   };
 
   const handleGeneratePurchaseOrder = (supplier: Supplier) => {
@@ -571,25 +575,89 @@ function SupplierDetailsModal({ supplier, products, onClose }: {
           </div>
 
           <div className="mt-6">
-            <h4 className="text-slate-700">Productos Suministrados</h4>
-            <div className="bg-slate-50 rounded-xl p-3 mt-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-500">Nombre</span>
-                <span className="text-slate-500">Stock</span>
-                <span className="text-slate-500">Min Stock</span>
-                <span className="text-slate-500">Max Stock</span>
-                <span className="text-slate-500">Precio</span>
+            <h4 className="text-slate-700 text-lg font-semibold mb-4">Productos Suministrados ({products.length})</h4>
+            {products.length === 0 ? (
+              <div className="bg-slate-50 rounded-xl p-6 text-center">
+                <Package size={48} className="mx-auto text-slate-300 mb-3" />
+                <p className="text-slate-500">Este proveedor no tiene productos asignados</p>
               </div>
-              {products.map(product => (
-                <div key={product.id} className="flex items-center justify-between mb-2">
-                  <span className="text-slate-700">{product.name}</span>
-                  <span className="text-slate-700">{product.stock}</span>
-                  <span className="text-slate-700">{product.minStock}</span>
-                  <span className="text-slate-700">{product.maxStock}</span>
-                  <span className="text-slate-700">$ {product.price.toLocaleString('es', { minimumFractionDigits: 2 })}</span>
-                </div>
-              ))}
-            </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Código</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Nombre</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Stock</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Min</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Max</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">Precio</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {products.map(product => {
+                      const stockLevel = product.stock <= product.minStock ? 'low' : 
+                                       product.stock >= product.maxStock ? 'high' : 'ok';
+                      return (
+                        <tr key={product.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3 text-sm text-slate-600">{product.code}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              {product.image && (
+                                <img 
+                                  src={product.image} 
+                                  alt={product.name}
+                                  className="w-8 h-8 rounded object-cover"
+                                />
+                              )}
+                              <div>
+                                <p className="text-sm font-medium text-slate-900">{product.name}</p>
+                                <p className="text-xs text-slate-500">{product.category}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                              stockLevel === 'low' ? 'bg-red-100 text-red-700' :
+                              stockLevel === 'high' ? 'bg-blue-100 text-blue-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {product.stock}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center text-sm text-slate-600">{product.minStock}</td>
+                          <td className="px-4 py-3 text-center text-sm text-slate-600">{product.maxStock}</td>
+                          <td className="px-4 py-3 text-right text-sm font-medium text-slate-900">
+                            ${product.price.toLocaleString('es', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {stockLevel === 'low' && (
+                              <span className="inline-flex items-center gap-1 text-xs text-red-600">
+                                <TrendingUp size={14} />
+                                Bajo
+                              </span>
+                            )}
+                            {stockLevel === 'ok' && (
+                              <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                                <CheckCircle size={14} />
+                                OK
+                              </span>
+                            )}
+                            {stockLevel === 'high' && (
+                              <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                                <CheckCircle size={14} />
+                                Alto
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">

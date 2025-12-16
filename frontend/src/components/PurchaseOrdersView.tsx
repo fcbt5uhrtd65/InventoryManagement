@@ -156,23 +156,22 @@ export function PurchaseOrdersView({ products, suppliers, currentUser }: Purchas
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      pendiente: 'bg-amber-100 text-amber-800 border-amber-200',
-      aprobada: 'bg-blue-100 text-blue-800 border-blue-200',
-      completada: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-      rechazada: 'bg-red-100 text-red-800 border-red-200'
+      pendiente: 'bg-amber-100 text-amber-800 border border-amber-300',
+      aprobada: 'bg-blue-100 text-blue-800 border border-blue-300',
+      completada: 'bg-emerald-100 text-emerald-800 border border-emerald-300',
+      rechazada: 'bg-red-100 text-red-800 border border-red-300'
     };
 
-    const icons = {
-      pendiente: <Clock size={16} />,
-      aprobada: <Check size={16} />,
-      completada: <CheckCircle2 size={16} />,
-      rechazada: <XCircle size={16} />
+    const labels = {
+      pendiente: 'Pendiente',
+      aprobada: 'Aprobada',
+      completada: 'Completada',
+      rechazada: 'Rechazada'
     };
 
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border ${styles[status as keyof typeof styles]}`}>
-        {icons[status as keyof typeof icons]}
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${styles[status as keyof typeof styles]}`}>
+        {labels[status as keyof typeof labels]}
       </span>
     );
   };
@@ -221,105 +220,97 @@ export function PurchaseOrdersView({ products, suppliers, currentUser }: Purchas
         )}
       </div>
 
-      {/* Stats Cards */}
-      {/* eslint-disable-next-line */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* Stats Cards - Diseño profesional con mejor distribución */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Total Órdenes */}
-        {/* eslint-disable-next-line */}
-        <div className="group bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 text-white rounded-3xl shadow-xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-              <Package size={28} strokeWidth={2.5} />
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-slate-100 rounded-lg flex-shrink-0">
+              <Package size={28} className="text-slate-600" strokeWidth={1.5} />
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-slate-200 text-sm">Total Órdenes</p>
-            <h3 className="text-white text-4xl font-bold">{stats.total}</h3>
+            <div className="flex-1">
+              <p className="text-slate-500 text-sm font-medium">Total de Órdenes</p>
+              <p className="text-3xl font-bold text-slate-800 mt-1">{stats.total}</p>
+            </div>
           </div>
         </div>
 
         {/* Pendientes */}
-        {/* eslint-disable-next-line */}
-        <div className="group bg-gradient-to-br from-amber-500 via-orange-600 to-orange-700 text-white rounded-3xl shadow-xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-              <Clock size={28} strokeWidth={2.5} />
+        <div className="bg-white border border-amber-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-amber-100 rounded-lg flex-shrink-0">
+              <Clock size={28} className="text-amber-600" strokeWidth={1.5} />
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-amber-100 text-sm">Pendientes</p>
-            <h3 className="text-white text-4xl font-bold">{stats.pendientes}</h3>
+            <div className="flex-1">
+              <p className="text-amber-700 text-sm font-medium">Pendientes</p>
+              <p className="text-3xl font-bold text-amber-800 mt-1">{stats.pendientes}</p>
+            </div>
           </div>
         </div>
 
         {/* Aprobadas */}
-        {/* eslint-disable-next-line */}
-        <div className="group bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white rounded-3xl shadow-xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-              <Check size={28} strokeWidth={2.5} />
+        <div className="bg-white border border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-100 rounded-lg flex-shrink-0">
+              <Check size={28} className="text-blue-600" strokeWidth={1.5} />
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-blue-100 text-sm">Aprobadas</p>
-            <h3 className="text-white text-4xl font-bold">{stats.aprobadas}</h3>
-          </div>
-        </div>
-
-        {/* Completadas */}
-        {/* eslint-disable-next-line */}
-        <div className="group bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700 text-white rounded-3xl shadow-xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-              <CheckCircle2 size={28} strokeWidth={2.5} />
+            <div className="flex-1">
+              <p className="text-blue-700 text-sm font-medium">Aprobadas</p>
+              <p className="text-3xl font-bold text-blue-800 mt-1">{stats.aprobadas}</p>
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-emerald-100 text-sm">Completadas</p>
-            <h3 className="text-white text-4xl font-bold">{stats.completadas}</h3>
-          </div>
-        </div>
-
-        {/* Monto Total */}
-        {/* eslint-disable-next-line */}
-        <div className="group bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 text-white rounded-3xl shadow-xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-              <span className="text-3xl font-bold">$</span>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-purple-100 text-sm">Monto Total</p>
-            <h3 className="text-white text-2xl font-bold">${stats.totalAmount.toLocaleString('es', { minimumFractionDigits: 2 })}</h3>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+      {/* Segunda fila de cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Completadas */}
+        <div className="bg-white border border-emerald-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-100 rounded-lg flex-shrink-0">
+              <CheckCircle2 size={28} className="text-emerald-600" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1">
+              <p className="text-emerald-700 text-sm font-medium">Completadas</p>
+              <p className="text-3xl font-bold text-emerald-800 mt-1">{stats.completadas}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Monto Total */}
+        <div className="bg-white border border-purple-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-purple-100 rounded-lg flex-shrink-0">
+              <span className="text-3xl font-bold text-purple-600">$</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-purple-700 text-sm font-medium">Monto Total</p>
+              <p className="text-3xl font-bold text-purple-800 mt-1">${(stats.totalAmount / 1000).toFixed(1)}K</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters - Diseño profesional */}
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <input
               type="text"
-              placeholder="Buscar por proveedor o ID..."
+              placeholder="Buscar por proveedor o ID de orden..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             />
           </div>
 
-          <div className="relative">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+          <div className="relative w-full md:w-56">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white cursor-pointer"
             >
               <option value="todas">Todos los estados</option>
               <option value="pendiente">Pendientes</option>
@@ -331,107 +322,131 @@ export function PurchaseOrdersView({ products, suppliers, currentUser }: Purchas
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* Orders Table - Diseño profesional mejorado */}
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-slate-700 font-semibold">ID</th>
-                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Proveedor</th>
-                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Productos</th>
-                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Monto</th>
-                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Estado</th>
-                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Fecha</th>
-                <th className="px-6 py-4 text-right text-slate-700 font-semibold">Acciones</th>
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="px-6 py-4 text-left">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">ID Orden</span>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Proveedor</span>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Productos</span>
+                </th>
+                <th className="px-6 py-4 text-right">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Monto</span>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Estado</span>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Fecha</span>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Acciones</span>
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-100">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                    No se encontraron órdenes de compra
+                  <td colSpan={7} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                        <Package size={32} className="text-slate-400" strokeWidth={1.5} />
+                      </div>
+                      <p className="text-slate-600 font-medium text-lg mb-1">No se encontraron órdenes</p>
+                      <p className="text-slate-400 text-sm">Intenta ajustar los filtros de búsqueda</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="font-mono text-sm text-slate-600">
-                        #{order.id.substring(0, 8)}
-                      </span>
+                      <code className="text-xs font-mono text-slate-700 bg-slate-100 px-2 py-1 rounded">
+                        #{order.id.substring(0, 8).toUpperCase()}
+                      </code>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Truck size={18} className="text-slate-400" />
-                        <span className="font-medium text-slate-800">{order.supplierName}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-orange-100 rounded flex items-center justify-center flex-shrink-0">
+                          <Truck size={16} className="text-orange-600" strokeWidth={1.5} />
+                        </div>
+                        <span className="font-medium text-slate-800 text-sm">{order.supplierName}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-slate-600">{order.products.length} productos</span>
+                    <td className="px-6 py-4 text-center">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded text-sm font-medium">
+                        <Package size={14} strokeWidth={1.5} />
+                        <span>{order.products.length}</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="font-semibold text-slate-800">
+                    <td className="px-6 py-4 text-right">
+                      <span className="font-semibold text-slate-900 text-sm">
                         ${order.totalAmount.toLocaleString('es', { minimumFractionDigits: 2 })}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
                       {getStatusBadge(order.status)}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-slate-600">
-                        {new Date(order.createdAt).toLocaleDateString('es')}
+                      <span className="text-slate-600 text-sm">
+                        {new Date(order.createdAt).toLocaleDateString('es', { 
+                          day: '2-digit', 
+                          month: 'short',
+                          year: 'numeric'
+                        })}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-center gap-1">
+                        {/* Ver detalles */}
                         <button
                           onClick={() => {
                             setSelectedOrder(order);
                             setShowDetailModal(true);
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                           title="Ver detalles"
                         >
-                          <Eye size={18} />
+                          <Eye size={18} strokeWidth={1.5} />
                         </button>
 
+                        {/* Aprobar */}
                         {order.status === 'pendiente' && currentUser.role === 'admin' && (
-                          <>
-                            <button
-                              onClick={() => handleApprove(order.id)}
-                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                              title="Aprobar"
-                            >
-                              <Check size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleReject(order.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Rechazar"
-                            >
-                              <X size={18} />
-                            </button>
-                          </>
-                        )}
-
-                        {order.status === 'aprobada' && (currentUser.role === 'admin' || currentUser.role === 'encargado_bodega') && (
                           <button
-                            onClick={() => handleComplete(order.id)}
-                            className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm"
-                            title="Completar orden"
+                            onClick={() => handleApprove(order.id)}
+                            className="p-2 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                            title="Aprobar orden"
                           >
-                            Recibir
+                            <Check size={18} strokeWidth={1.5} />
                           </button>
                         )}
 
-                        {(order.status === 'pendiente' || order.status === 'rechazada') && currentUser.role === 'admin' && (
+                        {/* Rechazar */}
+                        {order.status === 'pendiente' && currentUser.role === 'admin' && (
                           <button
-                            onClick={() => handleDelete(order.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Eliminar"
+                            onClick={() => handleReject(order.id)}
+                            className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Rechazar orden"
                           >
-                            <X size={18} />
+                            <X size={18} strokeWidth={1.5} />
+                          </button>
+                        )}
+
+                        {/* Recibir */}
+                        {order.status === 'aprobada' && (currentUser.role === 'admin' || currentUser.role === 'encargado_bodega') && (
+                          <button
+                            onClick={() => handleComplete(order.id)}
+                            className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition-colors"
+                            title="Marcar como recibida"
+                          >
+                            Recibir
                           </button>
                         )}
                       </div>
@@ -459,40 +474,49 @@ export function PurchaseOrdersView({ products, suppliers, currentUser }: Purchas
         currentUserName={currentUser.name}
       />
 
-      {/* Detail Modal */}
+      {/* Detail Modal - Diseño mejorado */}
       {showDetailModal && selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-slate-200">
-              <h3 className="text-2xl font-bold text-slate-800">Detalle de Orden #{selectedOrder.id.substring(0, 8)}</h3>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 p-5 flex items-center justify-between rounded-t-xl">
+              <div>
+                <h3 className="text-xl font-bold text-white">Orden #{selectedOrder.id.substring(0, 8)}</h3>
+                <p className="text-blue-100 text-sm">Detalles de la orden de compra</p>
+              </div>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
               >
-                <X size={24} className="text-slate-500" />
+                <X size={20} />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-5">
               {/* Info general */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-slate-600 mb-1">Proveedor</p>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-slate-500 text-xs mb-1">Proveedor</p>
                   <p className="font-semibold text-slate-800">{selectedOrder.supplierName}</p>
                 </div>
-                <div>
-                  <p className="text-slate-600 mb-1">Estado</p>
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-slate-500 text-xs mb-1">Estado</p>
                   {getStatusBadge(selectedOrder.status)}
                 </div>
-                <div>
-                  <p className="text-slate-600 mb-1">Fecha de creación</p>
-                  <p className="font-semibold text-slate-800">
-                    {new Date(selectedOrder.createdAt).toLocaleString('es')}
+                <div className="bg-slate-50 rounded-lg p-3">
+                  <p className="text-slate-500 text-xs mb-1">Fecha de creación</p>
+                  <p className="font-semibold text-slate-800 text-sm">
+                    {new Date(selectedOrder.createdAt).toLocaleString('es', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </p>
                 </div>
-                <div>
-                  <p className="text-slate-600 mb-1">Monto Total</p>
-                  <p className="font-semibold text-slate-800 text-xl">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+                  <p className="text-blue-600 text-xs mb-1 font-medium">Monto Total</p>
+                  <p className="font-bold text-blue-700 text-xl">
                     ${selectedOrder.totalAmount.toLocaleString('es', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -500,30 +524,43 @@ export function PurchaseOrdersView({ products, suppliers, currentUser }: Purchas
 
               {/* Productos */}
               <div>
-                <h4 className="font-semibold text-slate-800 mb-3">Productos</h4>
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <Package size={18} className="text-blue-600" />
+                  Productos ({selectedOrder.products.length})
+                </h4>
+                <div className="border border-slate-200 rounded-lg overflow-hidden">
                   <table className="w-full">
                     <thead className="bg-slate-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-slate-700">Producto</th>
-                        <th className="px-4 py-3 text-center text-slate-700">Cantidad</th>
-                        <th className="px-4 py-3 text-right text-slate-700">Precio</th>
-                        <th className="px-4 py-3 text-right text-slate-700">Subtotal</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600">Producto</th>
+                        <th className="px-3 py-2 text-center text-xs font-semibold text-slate-600">Cantidad</th>
+                        <th className="px-3 py-2 text-right text-xs font-semibold text-slate-600">Precio Unit.</th>
+                        <th className="px-3 py-2 text-right text-xs font-semibold text-slate-600">Subtotal</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200">
+                    <tbody className="divide-y divide-slate-100">
                       {selectedOrder.products.map((product, idx) => (
-                        <tr key={idx}>
-                          <td className="px-4 py-3 text-slate-800">{product.productName}</td>
-                          <td className="px-4 py-3 text-center text-slate-600">{product.quantity}</td>
-                          <td className="px-4 py-3 text-right text-slate-600">
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="px-3 py-2.5 text-slate-800 text-sm">{product.productName}</td>
+                          <td className="px-3 py-2.5 text-center">
+                            <span className="inline-block bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">
+                              {product.quantity}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 text-right text-slate-600 text-sm">
                             ${product.price.toFixed(2)}
                           </td>
-                          <td className="px-4 py-3 text-right font-semibold text-slate-800">
+                          <td className="px-3 py-2.5 text-right font-semibold text-slate-800 text-sm">
                             ${(product.quantity * product.price).toFixed(2)}
                           </td>
                         </tr>
                       ))}
+                      <tr className="bg-slate-50 font-semibold">
+                        <td colSpan={3} className="px-3 py-3 text-right text-slate-700">Total:</td>
+                        <td className="px-3 py-3 text-right text-blue-700 text-lg">
+                          ${selectedOrder.totalAmount.toFixed(2)}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -532,10 +569,17 @@ export function PurchaseOrdersView({ products, suppliers, currentUser }: Purchas
               {/* Notas */}
               {selectedOrder.notes && (
                 <div>
-                  <h4 className="font-semibold text-slate-800 mb-2">Notas</h4>
-                  <p className="text-slate-600 bg-slate-50 p-4 rounded-xl">{selectedOrder.notes}</p>
+                  <h4 className="font-semibold text-slate-800 mb-2 text-sm">Notas adicionales</h4>
+                  <p className="text-slate-600 bg-amber-50 border border-amber-200 p-3 rounded-lg text-sm">{selectedOrder.notes}</p>
                 </div>
               )}
+
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-medium"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

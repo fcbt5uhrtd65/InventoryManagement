@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, UserCheck, UserX, Shield, User as UserIcon, Loader2 } from 'lucide-react';
-import type { User } from '../types/index';
+import type { User, Warehouse } from '../types/index';
 import { UserFormModal } from './UserFormModal';
 import { userService } from '../services/userService';
+import { warehouseService } from '../services/warehouseService';
 import { authService } from '../services/authService';
 
 export function UsersView() {
   const [users, setUsers] = useState<User[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const currentUser = authService.getCurrentUser();
 
-  // Cargar usuarios al montar el componente
+  // Cargar usuarios y almacenes al montar el componente
   useEffect(() => {
     loadUsers();
+    loadWarehouses();
   }, []);
 
   // Función para cargar usuarios
@@ -31,6 +34,16 @@ export function UsersView() {
       setUsers([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para cargar almacenes
+  const loadWarehouses = async () => {
+    try {
+      const warehousesData = await warehouseService.getAll();
+      setWarehouses(Array.isArray(warehousesData) ? warehousesData : []);
+    } catch (err) {
+      console.error('Error cargando almacenes:', err);
     }
   };
 
@@ -150,143 +163,145 @@ export function UsersView() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-slate-500">Usuarios Activos</p>
-            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-              <UserCheck size={20} />
+      {/* Stats Cards - Diseño profesional */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white border border-emerald-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-100 rounded-lg flex-shrink-0">
+              <UserCheck size={28} className="text-emerald-600" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1">
+              <p className="text-emerald-700 text-sm font-medium">Usuarios Activos</p>
+              <p className="text-3xl font-bold text-emerald-800 mt-1">{activeUsers}</p>
             </div>
           </div>
-          <h3>{activeUsers}</h3>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-slate-500">Administradores</p>
-            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
-              <Shield size={20} />
+        <div className="bg-white border border-indigo-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-100 rounded-lg flex-shrink-0">
+              <Shield size={28} className="text-indigo-600" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1">
+              <p className="text-indigo-700 text-sm font-medium">Administradores</p>
+              <p className="text-3xl font-bold text-indigo-800 mt-1">{adminUsers}</p>
             </div>
           </div>
-          <h3>{adminUsers}</h3>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-slate-500">Empleados</p>
-            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-              <UserIcon size={20} />
+        <div className="bg-white border border-blue-200 rounded-lg shadow-sm hover:shadow-md transition-all p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-100 rounded-lg flex-shrink-0">
+              <UserIcon size={28} className="text-blue-600" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1">
+              <p className="text-blue-700 text-sm font-medium">Empleados</p>
+              <p className="text-3xl font-bold text-blue-800 mt-1">{employeeUsers}</p>
             </div>
           </div>
-          <h3>{employeeUsers}</h3>
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-left">Usuario</th>
-                <th className="px-6 py-4 text-left">Correo</th>
-                <th className="px-6 py-4 text-left">Rol</th>
-                <th className="px-6 py-4 text-left">Estado</th>
-                <th className="px-6 py-4 text-left">Fecha de Registro</th>
-                <th className="px-6 py-4 text-left">Acciones</th>
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="px-6 py-4 text-left">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Usuario</span>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Correo</span>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Rol</span>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Estado</span>
+                </th>
+                <th className="px-6 py-4 text-left">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Fecha Registro</span>
+                </th>
+                <th className="px-6 py-4 text-center">
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Acciones</span>
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-100">
               {users.map(user => (
-                <tr key={user.id} className={`hover:bg-slate-50 transition-colors ${!user.active ? 'opacity-50' : ''}`}>
+                <tr key={user.id} className={`hover:bg-slate-50 transition-colors ${!user.active ? 'opacity-60' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white">
+                      <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p>{user.name}</p>
+                        <p className="font-medium text-slate-800">{user.name}</p>
                         {user.id === currentUser.id && (
-                          <span className="text-indigo-600">(Tú)</span>
+                          <span className="text-xs text-indigo-600 font-medium">(Tú)</span>
                         )}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-slate-600">{user.email}</p>
+                    <p className="text-slate-600 text-sm">{user.email}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full ${
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
                       user.role === 'admin' 
-                        ? 'bg-indigo-100 text-indigo-700' 
-                        : 'bg-blue-100 text-blue-700'
+                        ? 'bg-indigo-100 text-indigo-800 border-indigo-300' 
+                        : 'bg-blue-100 text-blue-800 border-blue-300'
                     }`}>
-                      {user.role === 'admin' ? (
-                        <span className="flex items-center gap-1">
-                          <Shield size={14} />
-                          Administrador
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1">
-                          <UserIcon size={14} />
-                          Empleado
-                        </span>
-                      )}
+                      {user.role === 'admin' ? 'Administrador' : 'Empleado'}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full flex items-center gap-1 w-fit ${
+                  <td className="px-6 py-4 text-center">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
                       user.active 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : 'bg-slate-100 text-slate-600'
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                        : 'bg-slate-100 text-slate-800 border-slate-300'
                     }`}>
-                      {user.active ? (
-                        <>
-                          <UserCheck size={14} />
-                          Activo
-                        </>
-                      ) : (
-                        <>
-                          <UserX size={14} />
-                          Inactivo
-                        </>
-                      )}
+                      {user.active ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-slate-600">
-                      {new Date(user.createdAt).toLocaleDateString('es')}
+                    <p className="text-slate-600 text-sm">
+                      {new Date(user.createdAt).toLocaleDateString('es', { 
+                        day: '2-digit', 
+                        month: 'short',
+                        year: 'numeric'
+                      })}
                     </p>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex gap-2">
+                    <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => handleEdit(user)}
-                        className="p-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                        title="Editar"
+                        className="p-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                        title="Editar usuario"
                       >
-                        <Edit2 size={18} />
+                        <Edit2 size={18} strokeWidth={1.5} />
                       </button>
                       <button
                         onClick={() => handleToggleActive(user)}
-                        className={`p-2 rounded-lg transition-colors ${
+                        className={`p-2 rounded transition-colors ${
                           user.active
                             ? 'text-slate-600 hover:text-amber-600 hover:bg-amber-50'
                             : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                         }`}
-                        title={user.active ? 'Desactivar' : 'Activar'}
+                        title={user.active ? 'Desactivar usuario' : 'Activar usuario'}
                         disabled={user.id === currentUser.id}
                       >
-                        {user.active ? <UserX size={18} /> : <UserCheck size={18} />}
+                        {user.active ? <UserX size={18} strokeWidth={1.5} /> : <UserCheck size={18} strokeWidth={1.5} />}
                       </button>
                       <button
                         onClick={() => handleDelete(user.id)}
-                        className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Eliminar"
+                        className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Eliminar usuario"
                         disabled={user.id === currentUser.id}
                       >
-                        <Trash2 size={18} />
+                        <Trash2 size={18} strokeWidth={1.5} />
                       </button>
                     </div>
                   </td>
@@ -305,6 +320,7 @@ export function UsersView() {
         }}
         onSave={handleSave}
         user={editingUser}
+        warehouses={warehouses}
       />
     </div>
   );

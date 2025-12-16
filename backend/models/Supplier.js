@@ -86,14 +86,38 @@ class Supplier {
 
   // Obtener productos de un proveedor
   static async getProductos(proveedorId) {
+    // Obtener productos usando la tabla de relación supplier_products
     const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('supplier_id', proveedorId)
-      .eq('active', true);
+      .from('supplier_products')
+      .select(`
+        product_id,
+        products (
+          id,
+          name,
+          description,
+          code,
+          category,
+          price,
+          stock,
+          min_stock,
+          max_stock,
+          image,
+          active,
+          supplier_id,
+          warehouse_id,
+          created_at
+        )
+      `)
+      .eq('supplier_id', proveedorId);
     
     if (error) throw error;
-    return data;
+    
+    // Extraer los productos de la respuesta y filtrar activos
+    const productos = data
+      .map(item => item.products)
+      .filter(product => product && product.active);
+    
+    return productos;
   }
 }
 

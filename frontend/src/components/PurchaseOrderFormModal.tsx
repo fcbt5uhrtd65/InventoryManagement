@@ -18,6 +18,8 @@ interface OrderItem {
   product_name: string;
   quantity: number;
   price: number;
+  supplier_id?: string;
+  supplier_name?: string;
 }
 
 export function PurchaseOrderFormModal({
@@ -76,6 +78,21 @@ export function PurchaseOrderFormModal({
       supplier_id: supplierId,
       supplier_name: supplier?.name || ''
     });
+    
+    // Solo limpiar el item actual, no los items agregados
+    setCurrentItem({ product_id: '', product_name: '', quantity: 1, price: 0 });
+  };
+
+  // Filtrar productos por proveedor seleccionado
+  const getAvailableProducts = () => {
+    if (!formData.supplier_id) {
+      return [];
+    }
+    
+    // Filtrar productos que pertenecen al proveedor seleccionado
+    return products.filter(p => 
+      p.active && p.supplierId === formData.supplier_id
+    );
   };
 
   const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -103,7 +120,14 @@ export function PurchaseOrderFormModal({
       return;
     }
 
-    setItems([...items, currentItem]);
+    // Agregar el item con información del proveedor
+    const itemWithSupplier = {
+      ...currentItem,
+      supplier_id: formData.supplier_id,
+      supplier_name: formData.supplier_name
+    };
+
+    setItems([...items, itemWithSupplier]);
     setCurrentItem({ product_id: '', product_name: '', quantity: 1, price: 0 });
   };
 
@@ -118,19 +142,19 @@ export function PurchaseOrderFormModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.supplier_id) {
-      alert('Por favor selecciona un proveedor');
-      return;
-    }
-
     if (items.length === 0) {
       alert('Por favor agrega al menos un producto');
       return;
     }
 
+    // Agrupar items por proveedor para crear múltiples órdenes si es necesario
+    // Por ahora, usaremos el proveedor del primer item como referencia
+    const firstSupplier = items[0].supplier_id || formData.supplier_id;
+    const firstSupplierName = items[0].supplier_name || formData.supplier_name;
+
     const orderData = {
-      supplier_id: formData.supplier_id,
-      supplier_name: formData.supplier_name,
+      supplier_id: firstSupplier,
+      supplier_name: firstSupplierName,
       total_amount: calculateTotal(),
       created_by: currentUserId,
       user_name: currentUserName,
@@ -170,22 +194,24 @@ export function PurchaseOrderFormModal({
           {/* Proveedor */}
           <div>
             <label className="block text-slate-700 font-medium mb-2">
-              Proveedor *
+              Proveedor (Selecciona para agregar productos) *
             </label>
             <select
               value={formData.supplier_id}
               onChange={handleSupplierChange}
-              required
               className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={editingOrder?.status !== 'pendiente' && !!editingOrder}
             >
-              <option value="">Seleccionar proveedor</option>
+              <option value="">Seleccionar proveedor para agregar productos</option>
               {suppliers.filter(s => s.active).map(supplier => (
                 <option key={supplier.id} value={supplier.id}>
                   {supplier.name} - {supplier.nit}
                 </option>
               ))}
             </select>
+            <p className="text-sm text-slate-500 mt-1">
+              💡 Puedes cambiar de proveedor para agregar productos de diferentes proveedores
+            </p>
           </div>
 
           {/* Agregar Productos */}
@@ -199,10 +225,16 @@ export function PurchaseOrderFormModal({
                   value={currentItem.product_id}
                   onChange={handleProductChange}
                   className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={editingOrder?.status !== 'pendiente' && !!editingOrder}
+                  disabled={!formData.supplier_id || (editingOrder?.status !== 'pendiente' && !!editingOrder)}
                 >
-                  <option value="">Seleccionar producto</option>
-                  {products.filter(p => p.active).map(product => (
+                  <option value="">
+                    {!formData.supplier_id 
+                      ? 'Primero selecciona un proveedor' 
+                      : getAvailableProducts().length === 0 
+                        ? 'No hay productos para este proveedor'
+                        : 'Seleccionar producto'}
+                  </option>
+                  {getAvailableProducts().map(product => (
                     <option key={product.id} value={product.id}>
                       {product.name} - ${product.price}
                     </option>
@@ -259,9 +291,14 @@ export function PurchaseOrderFormModal({
                   <div key={index} className="px-4 py-3 flex items-center justify-between hover:bg-slate-50">
                     <div className="flex-1">
                       <p className="font-medium text-slate-800">{item.product_name}</p>
-                      <p className="text-slate-600">
+                      <p className="text-slate-600 text-sm">
                         {item.quantity} x ${item.price.toFixed(2)} = ${(item.quantity * item.price).toFixed(2)}
                       </p>
+                      {item.supplier_name && (
+                        <p className="text-slate-500 text-xs mt-1">
+                          🏢 Proveedor: {item.supplier_name}
+                        </p>
+                      )}
                     </div>
                     {(!editingOrder || editingOrder.status === 'pendiente') && (
                       <button

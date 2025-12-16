@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS users (
     role user_role NOT NULL,
     active BOOLEAN DEFAULT true NOT NULL,
     avatar VARCHAR(500),
+    warehouse_id UUID REFERENCES warehouses(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
@@ -194,6 +195,18 @@ CREATE TABLE IF NOT EXISTS supplier_products (
 );
 
 -- ==========================================
+-- TABLA: product_warehouses
+-- Descripción: Relación N:N productos-almacenes
+-- ==========================================
+CREATE TABLE IF NOT EXISTS product_warehouses (
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    warehouse_id UUID NOT NULL REFERENCES warehouses(id) ON DELETE CASCADE,
+    stock_in_warehouse INTEGER NOT NULL DEFAULT 0 CHECK (stock_in_warehouse >= 0),
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    PRIMARY KEY (product_id, warehouse_id)
+);
+
+-- ==========================================
 -- ÍNDICES para optimización
 -- ==========================================
 
@@ -201,6 +214,7 @@ CREATE TABLE IF NOT EXISTS supplier_products (
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_active ON users(active);
+CREATE INDEX IF NOT EXISTS idx_users_warehouse ON users(warehouse_id);
 
 -- Warehouses
 CREATE INDEX IF NOT EXISTS idx_warehouses_active ON warehouses(active);
@@ -249,6 +263,10 @@ CREATE INDEX IF NOT EXISTS idx_poi_product ON purchase_order_items(product_id);
 -- Supplier Products
 CREATE INDEX IF NOT EXISTS idx_sp_supplier ON supplier_products(supplier_id);
 CREATE INDEX IF NOT EXISTS idx_sp_product ON supplier_products(product_id);
+
+-- Product Warehouses
+CREATE INDEX IF NOT EXISTS idx_pw_product ON product_warehouses(product_id);
+CREATE INDEX IF NOT EXISTS idx_pw_warehouse ON product_warehouses(warehouse_id);
 
 -- ==========================================
 -- FUNCIÓN para actualizar updated_at

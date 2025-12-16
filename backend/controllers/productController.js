@@ -12,7 +12,19 @@ import Product from '../models/Product.js';
  */
 export const obtenerProductos = async (req, res) => {
   try {
+    console.log('=== OBTENIENDO PRODUCTOS ===');
     const productos = await Product.getAll();
+    console.log(`Total productos: ${productos.length}`);
+    
+    // Log de los primeros 2 productos para verificar warehouseIds
+    if (productos.length > 0) {
+      console.log('Primer producto:', {
+        code: productos[0].code,
+        name: productos[0].name,
+        warehouseId: productos[0].warehouse_id,
+        warehouseIds: productos[0].warehouseIds
+      });
+    }
     
     res.status(200).json({
       success: true,
@@ -68,6 +80,9 @@ export const crearProducto = async (req, res) => {
   try {
     const productData = req.body;
     
+    console.log('Datos recibidos en backend:', productData);
+    console.log('warehouseIds recibido:', productData.warehouseIds);
+    
     // Mapear campos inglés a español para compatibilidad
     const mappedData = {
       nombre: productData.name || productData.nombre,
@@ -78,7 +93,12 @@ export const crearProducto = async (req, res) => {
       max_stock: productData.maxStock || productData.max_stock || 100,
       codigo: productData.code || productData.codigo,
       categoria: productData.category || productData.categoria,
-      activo: productData.active !== undefined ? productData.active : true
+      activo: productData.active !== undefined ? productData.active : true,
+      supplierId: productData.supplierId,
+      supplier: productData.supplier,
+      warehouseId: productData.warehouseId,
+      warehouseIds: productData.warehouseIds || [],
+      image: productData.image
     };
     
     // Validaciones básicas
@@ -115,6 +135,10 @@ export const actualizarProducto = async (req, res) => {
     const { id } = req.params;
     const productData = req.body;
     
+    console.log('Actualizando producto:', id);
+    console.log('Datos recibidos:', productData);
+    console.log('warehouseIds recibido:', productData.warehouseIds);
+    
     // Mapear campos inglés a español para compatibilidad
     const mappedData = {};
     
@@ -127,8 +151,9 @@ export const actualizarProducto = async (req, res) => {
     if (productData.code !== undefined) mappedData.code = productData.code;
     if (productData.category !== undefined) mappedData.category = productData.category;
     if (productData.supplier !== undefined) mappedData.supplier_name = productData.supplier;
-    if (productData.supplierId !== undefined) mappedData.supplier_id = productData.supplierId || null;
-    if (productData.warehouseId !== undefined) mappedData.warehouse_id = productData.warehouseId || null;
+    if (productData.supplierId !== undefined) mappedData.supplierId = productData.supplierId || null;
+    if (productData.warehouseId !== undefined) mappedData.warehouseId = productData.warehouseId || null;
+    if (productData.warehouseIds !== undefined) mappedData.warehouseIds = productData.warehouseIds || [];
     if (productData.image !== undefined) mappedData.image = productData.image;
     if (productData.active !== undefined) mappedData.active = productData.active;
     
