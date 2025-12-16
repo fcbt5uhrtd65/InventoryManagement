@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { History, Search, Calendar, User, FileText, Filter, Download, Eye, Shield, AlertCircle } from 'lucide-react';
+import { History, Search, Calendar, User, FileText, Filter, Download, Eye, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { AuditLog } from '../types/index';
 
 interface AuditViewProps {
@@ -12,6 +12,8 @@ export function AuditView({ logs }: AuditViewProps) {
   const [actionFilter, setActionFilter] = useState('all');
   const [entityFilter, setEntityFilter] = useState('all');
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const logsPerPage = 15;
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,6 +25,33 @@ export function AuditView({ logs }: AuditViewProps) {
     return matchesSearch && matchesDate && matchesAction && matchesEntity;
   });
 
+  // Cálculo de paginación
+  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+  const startIndex = (currentPage - 1) * logsPerPage;
+  const endIndex = startIndex + logsPerPage;
+  const currentLogs = filteredLogs.slice(startIndex, endIndex);
+
+  // Resetear página al cambiar filtros
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateChange = (value: string) => {
+    setDateFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleActionChange = (value: string) => {
+    setActionFilter(value);
+    setCurrentPage(1);
+  };
+
+  const handleEntityChange = (value: string) => {
+    setEntityFilter(value);
+    setCurrentPage(1);
+  };
+
   const getActionColor = (action: string) => {
     if (action.includes('creó') || action.includes('Creó') || action.includes('agregó') || action.includes('registró')) return 'emerald';
     if (action.includes('editó') || action.includes('Actualizó') || action.includes('actualizó') || action.includes('modificó')) return 'blue';
@@ -33,36 +62,12 @@ export function AuditView({ logs }: AuditViewProps) {
   };
 
   const getActionIcon = (action: string) => {
-    if (action.includes('creó') || action.includes('Creó') || action.includes('agregó')) return '✨';
-    if (action.includes('editó') || action.includes('Actualizó') || action.includes('actualizó')) return '✏️';
-    if (action.includes('eliminó') || action.includes('Eliminó')) return '🗑️';
-    if (action.includes('inició sesión') || action.includes('Inició sesión')) return '🔓';
-    if (action.includes('cerró sesión') || action.includes('Cerró sesión')) return '🔒';
-    return '📝';
-  };
-
-  const getActionBgGradient = (color: string) => {
-    const gradients = {
-      emerald: 'from-emerald-50 to-emerald-100 border-emerald-200',
-      blue: 'from-blue-50 to-blue-100 border-blue-200',
-      red: 'from-red-50 to-red-100 border-red-200',
-      purple: 'from-purple-50 to-purple-100 border-purple-200',
-      orange: 'from-orange-50 to-orange-100 border-orange-200',
-      slate: 'from-slate-50 to-slate-100 border-slate-200',
-    };
-    return gradients[color as keyof typeof gradients] || gradients.slate;
-  };
-
-  const getActionTextColor = (color: string) => {
-    const colors = {
-      emerald: 'text-emerald-700',
-      blue: 'text-blue-700',
-      red: 'text-red-700',
-      purple: 'text-purple-700',
-      orange: 'text-orange-700',
-      slate: 'text-slate-700',
-    };
-    return colors[color as keyof typeof colors] || colors.slate;
+    if (action.includes('creó') || action.includes('Creó') || action.includes('agregó')) return FileText;
+    if (action.includes('editó') || action.includes('Actualizó') || action.includes('actualizó')) return FileText;
+    if (action.includes('eliminó') || action.includes('Eliminó')) return FileText;
+    if (action.includes('inició sesión') || action.includes('Inició sesión')) return User;
+    if (action.includes('cerró sesión') || action.includes('Cerró sesión')) return User;
+    return FileText;
   };
 
   const actions = ['all', 'creó', 'editó', 'eliminó', 'inició sesión', 'cerró sesión'];
@@ -156,7 +161,7 @@ export function AuditView({ logs }: AuditViewProps) {
               type="text"
               placeholder="Buscar en auditoría..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
             />
           </div>
@@ -166,7 +171,7 @@ export function AuditView({ logs }: AuditViewProps) {
             <input
               type="date"
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
             />
           </div>
@@ -175,7 +180,7 @@ export function AuditView({ logs }: AuditViewProps) {
             <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <select
               value={actionFilter}
-              onChange={(e) => setActionFilter(e.target.value)}
+              onChange={(e) => handleActionChange(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 appearance-none bg-white"
             >
               {actions.map(action => (
@@ -190,7 +195,7 @@ export function AuditView({ logs }: AuditViewProps) {
             <FileText className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <select
               value={entityFilter}
-              onChange={(e) => setEntityFilter(e.target.value)}
+              onChange={(e) => handleEntityChange(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 appearance-none bg-white"
             >
               {entities.map(entity => (
@@ -208,6 +213,7 @@ export function AuditView({ logs }: AuditViewProps) {
             setDateFilter('');
             setActionFilter('all');
             setEntityFilter('all');
+            setCurrentPage(1);
           }}
           className="mt-4 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
         >
@@ -215,56 +221,77 @@ export function AuditView({ logs }: AuditViewProps) {
         </button>
       </div>
 
-      {/* Audit Logs */}
+      {/* Audit Logs Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="divide-y divide-slate-200">
-          {filteredLogs.map(log => {
-            const color = getActionColor(log.action);
-            const icon = getActionIcon(log.action);
-            
-            return (
-              <div key={log.id} className="p-6 hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-4">
-                  <div className={`p-3 bg-${color}-100 text-${color}-600 rounded-xl flex-shrink-0`}>
-                    <span className="text-2xl">{icon}</span>
-                  </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <h4>{log.action}</h4>
-                      <span className={`px-3 py-1 bg-${color}-100 text-${color}-700 rounded-full`}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Acción</th>
+                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Entidad</th>
+                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Usuario</th>
+                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Detalles</th>
+                <th className="px-6 py-4 text-left text-slate-700 font-semibold">Fecha y Hora</th>
+                <th className="px-6 py-4 text-center text-slate-700 font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {currentLogs.map(log => {
+                const color = getActionColor(log.action);
+                const IconComponent = getActionIcon(log.action);
+                
+                return (
+                  <tr key={log.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 bg-${color}-100 rounded-lg`}>
+                          <IconComponent size={18} className={`text-${color}-600`} />
+                        </div>
+                        <span className="font-medium text-slate-800">{log.action}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 bg-${color}-100 text-${color}-700 rounded-full text-sm font-medium`}>
                         {log.entity}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <User size={16} className="text-slate-400" />
+                        <span className="text-slate-700">{log.userName}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-slate-600 max-w-xs truncate" title={log.details}>
+                        {log.details}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-slate-600">
+                          <Calendar size={14} />
+                          <span className="text-sm">{new Date(log.timestamp).toLocaleDateString('es')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <History size={14} />
+                          <span className="text-sm">{new Date(log.timestamp).toLocaleTimeString('es')}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => setSelectedLog(log)}
-                        className="ml-auto px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1"
+                        className="inline-flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       >
                         <Eye size={16} />
-                        <span>Ver Detalles</span>
+                        <span className="text-sm">Ver</span>
                       </button>
-                    </div>
-                    
-                    <p className="text-slate-600 mb-3">{log.details}</p>
-                    
-                    <div className="flex items-center gap-6 text-slate-500">
-                      <div className="flex items-center gap-2">
-                        <User size={14} />
-                        <span>{log.userName}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar size={14} />
-                        <span>{new Date(log.timestamp).toLocaleDateString('es')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <History size={14} />
-                        <span>{new Date(log.timestamp).toLocaleTimeString('es')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {filteredLogs.length === 0 && (
@@ -272,6 +299,60 @@ export function AuditView({ logs }: AuditViewProps) {
             <FileText size={48} className="mx-auto text-slate-300 mb-4" />
             <h3 className="text-slate-600 mb-2">No hay registros</h3>
             <p className="text-slate-500">No se encontraron registros de auditoría con los filtros aplicados</p>
+          </div>
+        )}
+
+        {/* Paginación */}
+        {filteredLogs.length > logsPerPage && (
+          <div className="border-t border-slate-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-slate-600">
+                Mostrando {startIndex + 1} - {Math.min(endIndex, filteredLogs.length)} de {filteredLogs.length} registros
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let page;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 rounded-lg transition-colors ${
+                          currentPage === page
+                            ? 'bg-slate-600 text-white'
+                            : 'border border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
