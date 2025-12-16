@@ -312,6 +312,17 @@ function SupplierModal({ supplier, products, onClose, onSave }: {
   onClose: () => void;
   onSave: (data: Omit<Supplier, 'id' | 'createdAt'>) => void;
 }) {
+  // Separar el prefijo del número de teléfono si existe
+  const parsePhone = (phone: string) => {
+    const match = phone.match(/^(\+\d+)\s*(.+)$/);
+    if (match) {
+      return { prefix: match[1], number: match[2] };
+    }
+    return { prefix: '+57', number: phone };
+  };
+
+  const initialPhone = supplier?.phone ? parsePhone(supplier.phone) : { prefix: '+57', number: '' };
+
   const [formData, setFormData] = useState({
     name: supplier?.name || '',
     contact: supplier?.contact || '',
@@ -323,9 +334,14 @@ function SupplierModal({ supplier, products, onClose, onSave }: {
     active: supplier?.active ?? true,
   });
 
+  const [phonePrefix, setPhonePrefix] = useState(initialPhone.prefix);
+  const [phoneNumber, setPhoneNumber] = useState(initialPhone.number);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    // Combinar prefijo y número en el campo phone
+    const combinedPhone = `${phonePrefix} ${phoneNumber}`;
+    onSave({ ...formData, phone: combinedPhone });
     onClose();
   };
 
@@ -387,13 +403,35 @@ function SupplierModal({ supplier, products, onClose, onSave }: {
 
             <div>
               <label className="block text-slate-700 mb-2">Teléfono *</label>
-              <input
-                type="tel"
-                required
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <div className="flex gap-2">
+                <select
+                  value={phonePrefix}
+                  onChange={(e) => setPhonePrefix(e.target.value)}
+                  className="w-32 px-3 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                >
+                  <option value="+57">🇨🇴 +57</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+52">🇲🇽 +52</option>
+                  <option value="+54">🇦🇷 +54</option>
+                  <option value="+56">🇨🇱 +56</option>
+                  <option value="+51">🇵🇪 +51</option>
+                  <option value="+593">🇪🇨 +593</option>
+                  <option value="+58">🇻🇪 +58</option>
+                  <option value="+591">🇧🇴 +591</option>
+                  <option value="+595">🇵🇾 +595</option>
+                  <option value="+598">🇺🇾 +598</option>
+                  <option value="+34">🇪🇸 +34</option>
+                  <option value="+44">🇬🇧 +44</option>
+                </select>
+                <input
+                  type="tel"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Número de teléfono"
+                  className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
             </div>
 
             <div className="col-span-2">

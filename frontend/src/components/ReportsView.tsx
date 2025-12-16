@@ -49,8 +49,8 @@ export function ReportsView({ products, movements }: ReportsViewProps) {
       return sum + (product ? product.price * m.quantity : 0);
     }, 0);
 
-  // Stock por categoría
-  const stockByCategory = activeProducts.reduce((acc, product) => {
+  // Stock por categoría (usa filteredProducts para respetar el filtro)
+  const stockByCategory = filteredProducts.reduce((acc, product) => {
     const existing = acc.find(item => item.name === product.category);
     if (existing) {
       existing.stock += product.stock;
@@ -87,8 +87,8 @@ export function ReportsView({ products, movements }: ReportsViewProps) {
     };
   });
 
-  // Productos más vendidos
-  const topProducts = activeProducts
+  // Productos más vendidos (usa filteredProducts para respetar el filtro)
+  const topProducts = filteredProducts
     .map(product => {
       const sales = filteredMovements
         .filter(m => m.productId === product.id && m.type === 'salida')
