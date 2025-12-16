@@ -427,24 +427,28 @@ function WarehouseDetailsModal({ warehouse, products, onClose }: {
 
         <div className="p-6 space-y-6">
           {/* Info Section */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-slate-500 mb-1">Ubicación</p>
-              <p className="text-slate-700">{warehouse.location}</p>
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div>
+                <p className="text-slate-500 mb-1">Ubicación</p>
+                <p className="text-slate-700">{warehouse.location}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 mb-1">Capacidad</p>
+                <p className="text-slate-700">{warehouse.capacity.toLocaleString()} unidades</p>
+              </div>
             </div>
-            <div>
-              <p className="text-slate-500 mb-1">Encargado</p>
-              <p className="text-slate-700">{warehouse.manager}</p>
-            </div>
-            <div>
-              <p className="text-slate-500 mb-1">Capacidad</p>
-              <p className="text-slate-700">{warehouse.capacity.toLocaleString()} unidades</p>
-            </div>
-            <div>
-              <p className="text-slate-500 mb-1">Estado</p>
-              <span className={`px-3 py-1 rounded-full ${warehouse.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                {warehouse.active ? 'Activo' : 'Inactivo'}
-              </span>
+            <div className="space-y-4">
+              <div>
+                <p className="text-slate-500 mb-1">Encargado</p>
+                <p className="text-slate-700">{warehouse.manager}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 mb-1">Estado</p>
+                <span className={`px-3 py-1 rounded-full ${warehouse.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                  {warehouse.active ? 'Activo' : 'Inactivo'}
+                </span>
+              </div>
             </div>
           </div>
 
